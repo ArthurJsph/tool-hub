@@ -50,7 +50,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://spring_backend:8080
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       - spring_backend
     ports:
