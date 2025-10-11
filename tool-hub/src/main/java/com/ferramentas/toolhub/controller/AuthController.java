@@ -30,7 +30,6 @@ public class AuthController {
             String credential = loginRequest.username();
             String password = loginRequest.password();
 
-            // Buscar usuário por username ou email em uma única consulta
             Optional<User> userOptional = userService.findByUsernameOrEmail(credential);
 
             if (userOptional.isEmpty()) {
@@ -39,7 +38,6 @@ public class AuthController {
 
             User user = userOptional.get();
 
-            // Gerar JWT token usando o username do usuário encontrado
             String token = authService.loginUser(user.getUsername(), password);
 
             UserResponseDTO userResponse = new UserResponseDTO(
