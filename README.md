@@ -1,195 +1,152 @@
-# Documentação das Rotas da API - Tool Hub
+-----
 
-## Autenticação
+# 🛠️ Tool Hub
 
-### POST /api/v1/auth/login
-- **Descrição**: Realiza login do usuário
-- **Parâmetros**: 
-  - Body (JSON):
-    ```json
-    {
-      "username": "string", // Username ou Email
-      "password": "string"
-    }
+**Uma plataforma web completa para ferramentas de desenvolvimento**
+
+[](https://openjdk.org/projects/jdk/17/)
+[](https://spring.io/projects/spring-boot)
+[](https://nextjs.org/)
+[](https://postgresql.org/)
+[](https://docker.com/)
+[](https://www.google.com/search?q=LICENSE)
+
+[🚀 Demo](https://www.google.com/search?q=%23demo) • [📖 Documentação](https://www.google.com/search?q=%23documenta%C3%A7%C3%A3o) • [🛠️ Instalação](https://www.google.com/search?q=%23instala%C3%A7%C3%A3o) • [🤝 Contribuir](https://www.google.com/search?q=%23contribui%C3%A7%C3%A3o)
+
+-----
+
+## 🎯 Sobre o Projeto
+
+O **Tool Hub** é uma aplicação web moderna que centraliza ferramentas essenciais para desenvolvedores. Oferece uma interface intuitiva e APIs robustas para soluções rápidas no dia a dia do desenvolvimento de software.
+
+## ✨ Funcionalidades
+
+### 🔧 Ferramentas Disponíveis
+
+  - **🔐 Gerador de Senhas**: Senhas customizáveis com complexidade controlada.
+  - **🔑 Validador JWT**: Validação completa de tokens JWT com análise de payload.
+  - **📝 Codificador Base64**: Codificação e decodificação de textos e arquivos.
+  - **\#️⃣ Gerador de Hash**: Suporte a múltiplos algoritmos como SHA256 e MD5.
+  - **🆔 Gerador UUID**: Geração rápida de UUIDs únicos.
+  - **👥 Gerenciamento de Usuários**: CRUD de usuários com controle de acesso.
+
+### 📊 Sistema de Monitoramento
+
+  - **📈 Analytics de Uso**: Estatísticas detalhadas de cada ferramenta.
+  - **🔍 Logs de Atividade**: Registro completo de ações dos usuários.
+  - **⚡ Performance Metrics**: Monitoramento de performance da aplicação.
+
+## 🚀 Tecnologias
+
+### 🖥️ Backend
+
+  - **Java 17**
+  - **Spring Boot 3.2**
+  - **Spring Security 6.2**
+  - **Spring Data JPA**
+  - **PostgreSQL 14**
+  - **JWT**
+
+### 🎨 Frontend
+
+  - **Next.js 14**
+  - **TypeScript 5.3**
+  - **Tailwind CSS 3.4**
+  - **Shadcn/ui**
+  - **Axios**
+
+### 🛠️ DevOps & Infraestrutura
+
+  - **Docker**
+  - **Docker Compose**
+  - **Nginx**
+  - **GitHub Actions (CI/CD)**
+
+-----
+
+## 📦 Instalação
+
+### 🎯 Instalação Rápida (Docker)
+
+A forma mais simples de rodar a aplicação é usando Docker Compose.
+
+1.  **Clone o repositório**:
+
+    ```bash
+    git clone https://github.com/seu-usuario/tool-hub.git
+    cd tool-hub
     ```
-- **Resposta**: 
-  ```json
-  {
-    "token": "string",
-    "user": {
-      "username": "string",
-      "email": "string",
-      "role": "USER",
-      "createdAt": "string",
-      "updatedAt": "string"
-    }
-  }
-  ```
-- **Status**: 200 (Sucesso) | 400 (Erro)
 
----
+2.  **Configure as variáveis de ambiente**:
+    Crie um arquivo `.env` na raiz do projeto com base no `.env.example`.
 
-## Usuários
+3.  **Inicie a aplicação**:
 
-### GET /api/v1/users
-- **Descrição**: Lista todos os usuários
-- **Parâmetros**: Nenhum
-- **Resposta**: Array de UserResponseDTO
-- **Status**: 200
-
-### GET /api/v1/users/{id}
-- **Descrição**: Busca usuário por ID
-- **Parâmetros**: 
-  - Path: `id` (UUID)
-- **Resposta**: UserResponseDTO
-- **Status**: 200 (Encontrado) | 404 (Não encontrado)
-
-### POST /api/v1/users
-- **Descrição**: Cria novo usuário
-- **Parâmetros**:
-  - Body (JSON):
-    ```json
-    {
-      "username": "string",
-      "email": "string",
-      "passwordHash": "string"
-    }
+    ```bash
+    docker-compose up --build -d
     ```
-- **Resposta**: UserResponseDTO
-- **Status**: 201 (Criado) | 409 (Conflito - usuário já existe)
 
-### PUT /api/v1/users/{id}
-- **Descrição**: Atualiza usuário existente
-- **Parâmetros**:
-  - Path: `id` (UUID)
-  - Body (JSON):
-    ```json
-    {
-      "username": "string",
-      "email": "string",
-      "passwordHash": "string"
-    }
+    A aplicação estará disponível em:
+
+      - **Frontend**: `http://localhost:3000`
+      - **Backend API**: `http://localhost:8080`
+
+### 🛠️ Instalação para Desenvolvimento
+
+Para rodar o projeto sem Docker, você precisará ter o **Java 17+**, **Node.js 18+** e **PostgreSQL** instalados localmente.
+
+  - **Backend**:
+    ```bash
+    cd tool-hub
+    ./mvnw spring-boot:run
     ```
-- **Resposta**: UserResponseDTO
-- **Status**: 200 (Atualizado) | 404 (Não encontrado)
+  - **Frontend**:
+    ```bash
+    cd tool-hub-frontend
+    npm install
+    npm run dev
+    ```
 
-### DELETE /api/v1/users/{id}
-- **Descrição**: Remove usuário
-- **Parâmetros**:
-  - Path: `id` (UUID)
-- **Resposta**: Vazio
-- **Status**: 204 (Removido)
+-----
 
----
+## 📚 Documentação da API
 
-## Ferramentas
+A API é construída com o padrão RESTful. A documentação completa está disponível em `/api-docs` (Swagger) ao rodar o backend.
 
-### GET /api/v1/tools/password
-- **Descrição**: Gera senha forte
-- **Parâmetros**:
-  - Query: `length` (int, default: 16)
-  - Query: `includeSymbols` (boolean, default: true)
-- **Resposta**: String (senha gerada)
-- **Status**: 200
+### Endpoints Principais
 
-### GET /api/v1/tools/jwt/validate
-- **Descrição**: Valida token JWT
-- **Parâmetros**:
-  - Query: `token` (string, obrigatório)
-  - Query: `algorithm` (string, default: "HS256")
-- **Resposta**: String ("Token é válido!" ou "Token é inválido!")
-- **Status**: 200
+  - `POST /api/v1/auth/login`: Autentica o usuário e retorna um token JWT.
+  - `GET /api/v1/users`: Lista todos os usuários (requer autenticação).
+  - `POST /api/v1/tools/password`: Gera uma senha aleatória.
+  - `POST /api/v1/tools/jwt/validate`: Valida um token JWT.
 
-### GET /api/v1/tools/uuid
-- **Descrição**: Gera UUID
-- **Parâmetros**: Nenhum
-- **Resposta**: String (UUID gerado)
-- **Status**: 200
+-----
 
-### POST /api/v1/tools/base64/encode
-- **Descrição**: Codifica string em Base64
-- **Parâmetros**:
-  - Form: `input` (string, obrigatório)
-- **Resposta**: String (texto codificado)
-- **Status**: 200
+## 📈 Roadmap
 
-### POST /api/v1/tools/base64/decode
-- **Descrição**: Decodifica string Base64
-- **Parâmetros**:
-  - Form: `input` (string, obrigatório)
-- **Resposta**: String (texto decodificado)
-- **Status**: 200
+  - **Novas Ferramentas**: Validador de CPF, gerador de QR Code.
+  - **Melhorias de Performance**: Adicionar cache com Redis.
+  - **Segurança Avançada**: Implementar autenticação de dois fatores (2FA).
 
-### POST /api/v1/tools/hash
-- **Descrição**: Gera hash de string
-- **Parâmetros**:
-  - Form: `input` (string, obrigatório)
-  - Form: `algorithm` (string, default: "SHA256")
-- **Resposta**: String (hash gerado)
-- **Status**: 200
+-----
 
----
+## 🤝 Contribuição
 
-## Logs de Uso
+Contribuições são bem-vindas\! Se você deseja ajudar, por favor, crie uma *branch* para sua *feature* e abra um *Pull Request* seguindo o padrão de *commits* do projeto.
 
-### POST /api/v1/logs
-- **Descrição**: Registra uso de ferramenta
-- **Parâmetros**:
-  - Query: `userId` (UUID, obrigatório)
-  - Query: `toolName` (string, obrigatório)
-  - Query: `ipAddress` (string, obrigatório)
-- **Resposta**: Vazio
-- **Status**: 201
+-----
 
----
+## 📄 Licença
 
-## DTOs
+Este projeto está sob a licença **MIT License**.
 
-### UserRequestDTO
-```json
-{
-  "username": "string",
-  "email": "string",
-  "passwordHash": "string"
-}
-```
+-----
 
-### UserResponseDTO
-```json
-{
-  "username": "string",
-  "email": "string",
-  "role": "string",
-  "createdAt": "string",
-  "updatedAt": "string"
-}
-```
 
-### LoginRequestDTO
-```json
-{
-  "username": "string", // Pode ser username ou email
-  "password": "string"
-}
-```
+## 🌟 Mostre seu apoio
 
----
+Se este projeto foi útil para você, deixe uma ⭐ no repositório\!
 
-## Otimizações Implementadas
+[](https://github.com/ArthurJsph/tool-hub/)
 
-### Redução de Requisições no Login
-- **Problema**: O endpoint de login fazia 2 consultas separadas ao banco (uma por username, outra por email)
-- **Solução**: Implementado método `findByUsernameOrEmail()` que faz uma única consulta usando OR na query
-- **Resultado**: Redução de 66% no número de consultas durante o login (de 3 para 1 consulta principal)
-
-### Melhorias Técnicas
-1. **UserRepository**: Adicionado método `findByUsernameOrEmail()` com query otimizada
-2. **UserService**: Implementado método correspondente no service
-3. **AuthController**: Modificado para usar o novo método otimizado
-
-### Query SQL Otimizada
-```sql
-SELECT u FROM User u WHERE u.username = :credential OR u.email = :credential
-```
-
-Esta otimização permite que o usuário faça login tanto com username quanto com email, mantendo apenas uma consulta ao banco de dados.
+**Feito com ❤️ por [ArthurJsph](https://github.com/ArthurJsph)**
