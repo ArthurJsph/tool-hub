@@ -16,18 +16,18 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-gray-900">Tool Hub</h1>
+    <header className="border-b border-gray-200 bg-white sticky top-0 z-30">
+      <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <h1 className="text-lg md:text-xl font-semibold text-gray-900 truncate">Tool Hub</h1>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="hidden sm:flex items-center space-x-2">
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full flex-shrink-0">
               <User className="h-4 w-4" />
             </div>
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 hidden sm:inline truncate max-w-xs">
               {user?.username || 'Usuário'}
             </span>
           </div>
@@ -39,7 +39,7 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
             className="flex items-center space-x-1"
           >
             <LogOut className="h-4 w-4" />
-            <span>Sair</span>
+            <span className="hidden sm:inline">Sair</span>
           </Button>
         </div>
       </div>

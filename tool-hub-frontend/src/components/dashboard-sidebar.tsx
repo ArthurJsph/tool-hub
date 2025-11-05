@@ -8,7 +8,8 @@ import {
   Hash, 
   Binary,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
@@ -31,13 +32,18 @@ const menuItems = [
       { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
       { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
       { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-      { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
+      { title: "Hash", href: "/dashboard/tools/hash", icon: Hash },
     ]
   },
   {
     title: "Usuários",
     icon: Users,
     href: "/dashboard/users",
+  },
+  {
+    title: "API Docs",
+    icon: FileText,
+    href: "/dashboard/swagger",
   },
 ]
 
@@ -130,7 +136,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
         
         <div className="p-4 border-t border-gray-100">
           <div className="text-xs text-gray-500 text-center">
-            Tool Hub v1.1
+            Tool Hub v1.0
           </div>
         </div>
       </div>
