@@ -31,7 +31,7 @@ const menuItems = [
       { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
       { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
       { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-      { title: "Hash", href: "/dashboard/tools/hash", icon: Hash },
+      { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
     ]
   },
   {
@@ -130,7 +130,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
         
         <div className="p-4 border-t border-gray-100">
           <div className="text-xs text-gray-500 text-center">
-            Tool Hub v1.0
+            Tool Hub v1.1
           </div>
         </div>
       </div>
