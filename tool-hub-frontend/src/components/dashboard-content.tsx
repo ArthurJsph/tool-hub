@@ -64,13 +64,13 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Bem-vindo ao Tool Hub - Suas ferramentas em um só lugar</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm md:text-base text-gray-600">Bem-vindo ao Tool Hub - Suas ferramentas em um só lugar</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
         {tools.map((tool) => {
           const Icon = tool.icon
           return (

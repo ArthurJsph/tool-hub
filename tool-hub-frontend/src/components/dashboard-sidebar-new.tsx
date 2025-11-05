@@ -7,7 +7,8 @@ import {
   Key, 
   Shield, 
   Hash, 
-  Binary
+  Binary,
+  FileText
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 
@@ -36,6 +37,11 @@ const menuItems = [
     title: "Usuários",
     icon: Users,
     href: "/dashboard/users",
+  },
+  {
+    title: "API Docs",
+    icon: FileText,
+    href: "/dashboard/swagger",
   }
 ]
 
