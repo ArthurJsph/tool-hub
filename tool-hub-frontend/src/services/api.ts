@@ -5,8 +5,10 @@ class ApiService {
   private api: AxiosInstance
 
   constructor() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    
     this.api = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1',
+      baseURL: apiUrl,
       headers: {
         'Content-Type': 'application/json',
       },
