@@ -37,11 +37,6 @@ const menuItems = [
     title: "Usuários",
     icon: Users,
     href: "/dashboard/users",
-  },
-  {
-    title: "API Docs",
-    icon: FileText,
-    href: "/dashboard/swagger",
   }
 ]
 
