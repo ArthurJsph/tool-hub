@@ -11,7 +11,12 @@ import {
   ChevronRight,
   FileText,
   Menu,
-  X
+  X,
+  FileJson,
+  UserPlus,
+  Link,
+  Search,
+  Globe
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -32,9 +37,14 @@ const menuItems = [
     submenu: [
       { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
       { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
+      { title: "JSON/JWT Parser", href: "/dashboard/tools/json-jwt", icon: FileJson },
       { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
       { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
       { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
+      { title: "Gerador de Dados", href: "/dashboard/tools/faker", icon: UserPlus },
+      { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: Link },
+      { title: "Testador de Regex", href: "/dashboard/tools/regex", icon: Search },
+      { title: "Testador de URL", href: "/dashboard/tools/url-tester", icon: Globe },
     ]
   },
   {
@@ -42,7 +52,11 @@ const menuItems = [
     icon: Users,
     href: "/dashboard/users",
   },
-
+  {
+    title: "API Docs",
+    icon: FileText,
+    href: "/dashboard/swagger",
+  },
 ]
 
 export function DashboardSidebarResponsive({ className }: SidebarProps) {

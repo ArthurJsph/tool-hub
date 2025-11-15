@@ -6,7 +6,7 @@ export class AuthService {
     return apiService.post<LoginResponseDTO>('/auth/login', credentials)
   }
 
-  static async validateToken(token: string): Promise<boolean> {
+  static async validateToken(): Promise<boolean> {
     try {
       // Pode ser implementado se o backend tiver endpoint para validar token
       // Por enquanto, assumimos que o interceptor do axios já trata isso

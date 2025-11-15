@@ -1,4 +1,4 @@
-import { UserRequestDTO, UserResponseDTO, UsersListResponse } from '@/types/user'
+import { UserRequestDTO, UserResponseDTO } from '@/types/user'
 import apiService from './api'
 
 export class UserService {

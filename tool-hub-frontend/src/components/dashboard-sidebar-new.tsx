@@ -7,8 +7,7 @@ import {
   Key, 
   Shield, 
   Hash, 
-  Binary,
-  FileText
+  Binary
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 

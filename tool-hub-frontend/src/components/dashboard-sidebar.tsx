@@ -8,8 +8,7 @@ import {
   Hash, 
   Binary,
   ChevronDown,
-  ChevronRight,
-  FileText
+  ChevronRight
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
