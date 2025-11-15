@@ -41,9 +41,10 @@ public class AuthController {
             String token = authService.loginUser(user.getUsername(), password);
 
             UserResponseDTO userResponse = new UserResponseDTO(
+                user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
-                "USER",
+                user.getRole(),
                 user.getCreatedAt().toString(),
                 user.getCreatedAt().toString()
             );

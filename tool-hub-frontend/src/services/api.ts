@@ -5,7 +5,8 @@ class ApiService {
   private api: AxiosInstance
 
   constructor() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
+    console.log('🔧 API URL configurada:', apiUrl)
     
     this.api = axios.create({
       baseURL: apiUrl,
@@ -36,34 +37,9 @@ class ApiService {
           // Token expirado ou inválido
           Cookies.remove('token')
           // Dispara evento customizado para notificar sobre sessão expirada
-          window.dispatchEvent(new CustomEvent('sessionExpired', {
-            detail: { message: 'Seu login expirou' }
-          }))
+          window.dispatchEvent(new CustomEvent('sessionExpired'))
           window.location.href = '/'
         }
-        
-        if (error.response?.status === 403) {
-          // Acesso negado - pode ser token expirado ou sem permissão
-          const message = error.response?.data?.message || 'Seu login expirou'
-          
-          // Se a mensagem indicar sessão expirada, remover token
-          if (message.toLowerCase().includes('expirou') || 
-              message.toLowerCase().includes('expired') ||
-              message.toLowerCase().includes('inválido') ||
-              message.toLowerCase().includes('invalid')) {
-            Cookies.remove('token')
-            window.dispatchEvent(new CustomEvent('sessionExpired', {
-              detail: { message: 'Seu login expirou' }
-            }))
-            window.location.href = '/'
-          } else {
-            // Apenas notificar sobre acesso negado sem redirecionar
-            window.dispatchEvent(new CustomEvent('accessDenied', {
-              detail: { message: message }
-            }))
-          }
-        }
-        
         return Promise.reject(error)
       }
     )
@@ -168,8 +144,8 @@ class ApiService {
   }
 
   async updateUser(id: string, userData: UpdateUserRequest): Promise<User> {
-    const response = await this.put<User>(`/users/${id}`, userData)
-    return response
+    const response = await this.api.patch<User>(`/users/${id}`, userData)
+    return response.data
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -188,17 +164,17 @@ export interface User {
 }
 
 export interface CreateUserRequest {
-  name: string
+  username: string
   email: string
-  password: string
-  role: 'Admin' | 'User'
+  passwordHash: string
+  role: string
 }
 
 export interface UpdateUserRequest {
-  name?: string
+  username?: string
   email?: string
-  role?: 'Admin' | 'User'
-  status?: 'active' | 'inactive'
+  passwordHash?: string
+  role?: string
 }
 
 export const apiService = new ApiService()

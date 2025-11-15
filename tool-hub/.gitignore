@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+create-admin.ps1
+create-admin.sh
+scripts-README.md
+newRoutes.md

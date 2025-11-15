@@ -162,75 +162,75 @@ export interface TestURLResponse {
 
 // JSON/JWT Services
 export const parseJWT = async (data: ParseJWTRequest): Promise<ParseJWTResponse> => {
-  const response = await api.post<ParseJWTResponse>('/api/tools/json-jwt/parse-jwt', data)
+  const response = await api.post<ParseJWTResponse>('/tools/json-jwt/parse-jwt', data)
   return response
 }
 
 export const parseJSON = async (data: ParseJSONRequest): Promise<FormatJSONResponse> => {
-  const response = await api.post<FormatJSONResponse>('/tools/json/parse', data)
+  const response = await api.post<FormatJSONResponse>('/tools/json-jwt/parse-json', data)
   return response
 }
 
 export const formatJSON = async (data: FormatJSONRequest): Promise<FormatJSONResponse> => {
-  const response = await api.post<FormatJSONResponse>('/api/tools/json-jwt/format-json', data)
+  const response = await api.post<FormatJSONResponse>('/tools/json-jwt/format-json', data)
   return response
 }
 
 // Faker Services
 export const generateFakeData = async (data: GenerateFakerRequest): Promise<GenerateFakerResponse> => {
-  const response = await api.post<GenerateFakerResponse>('/api/tools/faker/generate', data)
+  const response = await api.post<GenerateFakerResponse>('/tools/faker/generate', data)
   return response
 }
 
 export const getFakerTypes = async (): Promise<{ types: string[]; locales: string[] }> => {
-  const response = await api.get<{ types: string[]; locales: string[] }>('/api/tools/faker/types')
+  const response = await api.get<{ types: string[]; locales: string[] }>('/tools/faker/types')
   return response
 }
 
 // URL Parser Services
 export const parseURL = async (data: ParseURLRequest): Promise<ParseURLResponse> => {
-  const response = await api.post<ParseURLResponse>('/api/tools/url-parser/parse', data)
+  const response = await api.post<ParseURLResponse>('/tools/url-parser/parse', data)
   return response
 }
 
 export const buildURL = async (data: BuildURLRequest): Promise<BuildURLResponse> => {
-  const response = await api.post<BuildURLResponse>('/api/tools/url-parser/build', data)
+  const response = await api.post<BuildURLResponse>('/tools/url-parser/build', data)
   return response
 }
 
 // Regex Services
 export const testRegex = async (data: TestRegexRequest): Promise<TestRegexResponse> => {
-  const response = await api.post<TestRegexResponse>('/api/tools/regex/test', data)
+  const response = await api.post<TestRegexResponse>('/tools/regex/test', data)
   return response
 }
 
 export const replaceRegex = async (data: ReplaceRegexRequest): Promise<ReplaceRegexResponse> => {
-  const response = await api.post<ReplaceRegexResponse>('/api/tools/regex/replace', data)
+  const response = await api.post<ReplaceRegexResponse>('/tools/regex/replace', data)
   return response
 }
 
 export const getRegexPatterns = async (): Promise<{ patterns: Record<string, string>; count: number }> => {
-  const response = await api.get<{ patterns: Record<string, string>; count: number }>('/api/tools/regex/patterns')
+  const response = await api.get<{ patterns: Record<string, string>; count: number }>('/tools/regex/patterns')
   return response
 }
 
 export const identifyRegex = async (data: IdentifyRegexRequest): Promise<IdentifyRegexResponse> => {
-  const response = await api.post<IdentifyRegexResponse>('/api/tools/regex/identify', data)
+  const response = await api.post<IdentifyRegexResponse>('/tools/regex/identify', data)
   return response
 }
 
 // URL Tester Services
 export const testURL = async (data: TestURLRequest): Promise<TestURLResponse> => {
-  const response = await api.post<TestURLResponse>('/api/tools/url-tester/test', data)
+  const response = await api.post<TestURLResponse>('/tools/url-tester/test', data)
   return response
 }
 
 export const checkURLSecurity = async (url: string): Promise<unknown> => {
-  const response = await api.post<unknown>('/api/tools/url-tester/security', { url })
+  const response = await api.post<unknown>('/tools/url-tester/security', { url })
   return response
 }
 
 export const getHTTPMethods = async (): Promise<{ methods: Array<{ method: string; description: string }> }> => {
-  const response = await api.get<{ methods: Array<{ method: string; description: string }> }>('/api/tools/url-tester/methods')
+  const response = await api.get<{ methods: Array<{ method: string; description: string }> }>('/tools/url-tester/methods')
   return response
 }

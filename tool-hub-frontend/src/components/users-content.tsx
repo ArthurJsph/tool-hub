@@ -5,7 +5,7 @@ import { Card } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Badge } from "@/components/Badge"
 import { Input } from "@/components/Input"
-import { Users, Plus, Search, Edit, Trash2, Eye, Loader2 } from "lucide-react"
+import { Users, Plus, Search, Edit, Trash2, X, Loader2 } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import apiService from "@/services/api"
 import { useToast } from "@/providers/ToastProvider"
@@ -21,8 +21,24 @@ interface ApiError {
   message?: string
 }
 
+interface UserFormData {
+  username: string
+  email: string
+  passwordHash: string
+  role: string
+}
+
 export function UsersContent() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [showModal, setShowModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<string | null>(null)
+  const [formData, setFormData] = useState<UserFormData>({
+    username: "",
+    email: "",
+    passwordHash: "",
+    role: "USER"
+  })
+  
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -36,6 +52,47 @@ export function UsersContent() {
         return false
       }
       return failureCount < 3
+    }
+  })
+
+  // Mutation para criar usuário
+  const createUserMutation = useMutation({
+    mutationFn: (userData: UserFormData) => apiService.createUser(userData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast({
+        title: "Usuário criado!",
+        description: "Usuário criado com sucesso",
+      })
+      handleCloseModal()
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Erro",
+        description: (error as ApiError)?.response?.data?.message || "Erro ao criar usuário",
+        variant: "destructive"
+      })
+    }
+  })
+
+  // Mutation para atualizar usuário
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, userData }: { id: string; userData: Partial<UserFormData> }) => 
+      apiService.updateUser(id, userData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast({
+        title: "Usuário atualizado!",
+        description: "Usuário atualizado com sucesso",
+      })
+      handleCloseModal()
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Erro",
+        description: (error as ApiError)?.response?.data?.message || "Erro ao atualizar usuário",
+        variant: "destructive"
+      })
     }
   })
 
@@ -57,6 +114,68 @@ export function UsersContent() {
       })
     }
   })
+
+  const handleOpenCreateModal = () => {
+    setEditingUser(null)
+    setFormData({
+      username: "",
+      email: "",
+      passwordHash: "",
+      role: "USER"
+    })
+    setShowModal(true)
+  }
+
+  const handleOpenEditModal = (user: unknown) => {
+    const u = user as { id: string; username: string; email: string; role?: string }
+    setEditingUser(u.id)
+    setFormData({
+      username: u.username,
+      email: u.email,
+      passwordHash: "",
+      role: u.role || "USER"
+    })
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setEditingUser(null)
+    setFormData({
+      username: "",
+      email: "",
+      passwordHash: "",
+      role: "USER"
+    })
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (editingUser) {
+      // Update user - password is optional
+      const updateData: Partial<UserFormData> = {
+        username: formData.username,
+        email: formData.email,
+        role: formData.role
+      }
+      if (formData.passwordHash) {
+        updateData.passwordHash = formData.passwordHash
+      }
+      updateUserMutation.mutate({ id: editingUser, userData: updateData })
+    } else {
+      // Create user - password is required
+      if (!formData.passwordHash) {
+        toast({
+          title: "Erro",
+          description: "Senha é obrigatória para criar um novo usuário",
+          variant: "destructive"
+        })
+        return
+      }
+      createUserMutation.mutate(formData)
+    }
+  }
 
   const handleDeleteUser = (userId: string) => {
     if (confirm("Tem certeza que deseja deletar este usuário?")) {
@@ -100,7 +219,7 @@ export function UsersContent() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button>
+          <Button onClick={handleOpenCreateModal}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Usuário
           </Button>
@@ -181,10 +300,11 @@ export function UsersContent() {
                       </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="secondary" className="text-xs">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button variant="secondary" className="text-xs">
+                        <Button 
+                          variant="secondary" 
+                          className="text-xs"
+                          onClick={() => handleOpenEditModal(user)}
+                        >
                           <Edit className="h-3 w-3" />
                         </Button>
                         <Button 
@@ -219,6 +339,105 @@ export function UsersContent() {
           )}
         </div>
       </Card>
+
+      {/* Modal de Criação/Edição */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingUser ? "Editar Usuário" : "Novo Usuário"}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nome de Usuário *
+                </label>
+                <Input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="Digite o nome de usuário"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email *
+                </label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="usuario@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Senha {editingUser ? "(deixe em branco para não alterar)" : "*"}
+                </label>
+                <Input
+                  type="password"
+                  value={formData.passwordHash}
+                  onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
+                  placeholder="Digite a senha"
+                  required={!editingUser}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Perfil *
+                </label>
+                <select
+                  value={formData.role || "USER"}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                >
+                  <option value="USER">Usuário</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCloseModal}
+                  disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                >
+                  {createUserMutation.isPending || updateUserMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    editingUser ? "Atualizar" : "Criar"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

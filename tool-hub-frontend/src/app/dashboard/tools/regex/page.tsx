@@ -63,12 +63,24 @@ export default function RegexPage() {
   }
 
   const handleTest = async () => {
+    if (!pattern.trim() || !text.trim()) {
+      setOutput(JSON.stringify({ error: 'Pattern e texto sao obrigatorios' }, null, 2))
+      return
+    }
+    
     try {
       setLoading(true)
+      console.log('Testando regex:', { pattern, text })
       const result = await testRegex({ pattern, text })
+      console.log('Resultado regex:', result)
       setOutput(JSON.stringify(result, null, 2))
-    } catch {
-      setOutput(JSON.stringify({ error: 'Erro ao testar regex' }, null, 2))
+    } catch (error: unknown) {
+      console.error('Erro ao testar regex:', error)
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      setOutput(JSON.stringify({ 
+        error: 'Erro ao testar regex',
+        details: err?.response?.data?.message || err?.message || 'Erro desconhecido'
+      }, null, 2))
     } finally {
       setLoading(false)
     }

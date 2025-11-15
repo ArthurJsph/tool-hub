@@ -14,8 +14,8 @@ export default function FakerPage() {
   const [locale, setLocale] = useState('pt-BR')
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [types, setTypes] = useState<string[]>([])
-  const [locales, setLocales] = useState<string[]>([])
+  const [types, setTypes] = useState<string[]>(['name', 'email', 'address', 'phone', 'date', 'company', 'person', 'internet'])
+  const [locales, setLocales] = useState<string[]>(['pt-BR', 'en-US', 'es-ES', 'fr-FR', 'de-DE', 'it-IT'])
 
   useEffect(() => {
     loadTypes()
@@ -34,10 +34,17 @@ export default function FakerPage() {
   const handleGenerate = async () => {
     try {
       setLoading(true)
+      console.log('Gerando dados faker:', { type, count, locale })
       const result = await generateFakeData({ type, count, locale })
+      console.log('Resultado faker:', result)
       setOutput(JSON.stringify(result.data, null, 2))
-    } catch {
-      setOutput(JSON.stringify({ error: 'Erro ao gerar dados' }, null, 2))
+    } catch (error: unknown) {
+      console.error('Erro ao gerar dados faker:', error)
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      setOutput(JSON.stringify({ 
+        error: 'Erro ao gerar dados',
+        details: err?.response?.data?.message || err?.message || 'Erro desconhecido'
+      }, null, 2))
     } finally {
       setLoading(false)
     }
@@ -66,9 +73,23 @@ export default function FakerPage() {
                     onChange={(e) => setType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
-                    {types.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
+                    {types.length === 0 ? (
+                      <option value="">Carregando...</option>
+                    ) : (
+                      types.map(t => (
+                        <option key={t} value={t}>
+                          {t === 'name' && 'Nome'}
+                          {t === 'email' && 'E-mail'}
+                          {t === 'address' && 'Endereco'}
+                          {t === 'phone' && 'Telefone'}
+                          {t === 'date' && 'Data'}
+                          {t === 'company' && 'Empresa'}
+                          {t === 'person' && 'Pessoa Completa'}
+                          {t === 'internet' && 'Internet'}
+                          {!['name', 'email', 'address', 'phone', 'date', 'company', 'person', 'internet'].includes(t) && t}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 

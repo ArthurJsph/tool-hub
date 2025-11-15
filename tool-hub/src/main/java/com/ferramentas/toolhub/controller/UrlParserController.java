@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tools/url-parser")
+@RequestMapping("/api/v1/tools/url-parser")
 public class UrlParserController {
 
     private final UrlParserService urlParserService;
