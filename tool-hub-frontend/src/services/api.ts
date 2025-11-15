@@ -36,9 +36,34 @@ class ApiService {
           // Token expirado ou inválido
           Cookies.remove('token')
           // Dispara evento customizado para notificar sobre sessão expirada
-          window.dispatchEvent(new CustomEvent('sessionExpired'))
+          window.dispatchEvent(new CustomEvent('sessionExpired', {
+            detail: { message: 'Seu login expirou' }
+          }))
           window.location.href = '/'
         }
+        
+        if (error.response?.status === 403) {
+          // Acesso negado - pode ser token expirado ou sem permissão
+          const message = error.response?.data?.message || 'Seu login expirou'
+          
+          // Se a mensagem indicar sessão expirada, remover token
+          if (message.toLowerCase().includes('expirou') || 
+              message.toLowerCase().includes('expired') ||
+              message.toLowerCase().includes('inválido') ||
+              message.toLowerCase().includes('invalid')) {
+            Cookies.remove('token')
+            window.dispatchEvent(new CustomEvent('sessionExpired', {
+              detail: { message: 'Seu login expirou' }
+            }))
+            window.location.href = '/'
+          } else {
+            // Apenas notificar sobre acesso negado sem redirecionar
+            window.dispatchEvent(new CustomEvent('accessDenied', {
+              detail: { message: message }
+            }))
+          }
+        }
+        
         return Promise.reject(error)
       }
     )
