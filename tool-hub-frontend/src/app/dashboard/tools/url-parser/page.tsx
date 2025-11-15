@@ -52,12 +52,30 @@ export default function URLParserPage() {
   const [path, setPath] = useState('')
 
   const handleParse = async () => {
+    if (!url.trim()) {
+      setOutput(JSON.stringify({ error: 'Por favor, digite uma URL' }, null, 2))
+      return
+    }
+    
     try {
       setLoading(true)
+      console.log('Parseando URL:', url)
       const result = await parseURL({ url })
+      console.log('Resultado parseURL:', result)
       setOutput(JSON.stringify(result, null, 2))
-    } catch {
-      setOutput(JSON.stringify({ error: 'Erro ao analisar URL' }, null, 2))
+    } catch (error: unknown) {
+      console.error('Erro completo:', error)
+      const err = error as { response?: { status?: number; data?: { error?: string; message?: string } }; message?: string }
+      const errorMessage = err?.response?.data?.error || 
+                          err?.response?.data?.message || 
+                          err?.message || 
+                          'Erro desconhecido'
+      setOutput(JSON.stringify({ 
+        error: 'Erro ao analisar URL',
+        message: errorMessage,
+        status: err?.response?.status,
+        backend: 'O backend retornou erro. Verifique se a API esta rodando e os logs do servidor.'
+      }, null, 2))
     } finally {
       setLoading(false)
     }

@@ -28,6 +28,9 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "role", nullable = false)
+    private String role = "USER";
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

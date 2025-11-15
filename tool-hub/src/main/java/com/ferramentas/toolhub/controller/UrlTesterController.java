@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tools/url-tester")
+@RequestMapping("/api/v1/tools/url-tester")
 public class UrlTesterController {
 
     private final UrlTestService urlTestService;

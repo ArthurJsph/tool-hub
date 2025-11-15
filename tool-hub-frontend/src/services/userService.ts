@@ -14,7 +14,7 @@ export class UserService {
     return apiService.post<UserResponseDTO>('/users', userData)
   }
 
-  static async updateUser(id: string, userData: UserRequestDTO): Promise<UserResponseDTO> {
+  static async updateUser(id: string, userData: Partial<UserRequestDTO>): Promise<UserResponseDTO> {
     return apiService.put<UserResponseDTO>(`/users/${id}`, userData)
   }
 

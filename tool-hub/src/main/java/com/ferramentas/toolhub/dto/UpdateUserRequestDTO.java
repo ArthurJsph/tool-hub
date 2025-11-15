@@ -1,11 +1,10 @@
 package com.ferramentas.toolhub.dto;
 
-public record UserResponseDTO(
-    String id,
+public record UpdateUserRequestDTO(
     String username,
     String email,
     String role,
-    String createdAt,
-    String updatedAt
+    String passwordHash
 ) {
 }
+

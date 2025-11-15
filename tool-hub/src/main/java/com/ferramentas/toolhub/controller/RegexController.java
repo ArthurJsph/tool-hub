@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tools/regex")
+@RequestMapping("/api/v1/tools/regex")
 public class RegexController {
 
     private final RegexService regexService;

@@ -1,127 +1,122 @@
 "use client"
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './Card'
-import { Button } from './Button'
-import { Badge } from './Badge'
-import { 
-  Key, 
-  Hash, 
-  Binary, 
-  Shield, 
-  Users
-} from 'lucide-react'
+import { Card } from "@/components/Card"
+import { BarChart3, Users, Key, TrendingUp } from "lucide-react"
 
 export function DashboardContent() {
-  const router = useRouter()
-
-  const tools = [
+  const stats = [
     {
-      id: 'password-generator',
-      name: 'Gerador de Senhas',
-      description: 'Gere senhas seguras e personalizáveis',
+      title: "Total de Ferramentas",
+      value: "10",
       icon: Key,
-      status: 'online',
-      route: '/dashboard/tools/password-generator'
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
     },
     {
-      id: 'jwt-validator',
-      name: 'Validador JWT',
-      description: 'Valide e decodifique tokens JWT',
-      icon: Shield,
-      status: 'online',
-      route: '/dashboard/tools/jwt-validator'
+      title: "Usuarios Ativos",
+      value: "0",
+      icon: Users,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
     },
     {
-      id: 'uuid-generator',
-      name: 'Gerador UUID',
-      description: 'Gere identificadores únicos universais',
-      icon: Hash,
-      status: 'online',
-      route: '/dashboard/tools/uuid-generator'
+      title: "Uso Hoje",
+      value: "0",
+      icon: TrendingUp,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
     },
     {
-      id: 'base64',
-      name: 'Base64',
-      description: 'Codifique e decodifique strings em Base64',
-      icon: Binary,
-      status: 'online',
-      route: '/dashboard/tools/base64'
-    },
-    {
-      id: 'hash-generator',
-      name: 'Gerador de Hash',
-      description: 'Gere hashes MD5, SHA1, SHA256, etc.',
-      icon: Hash,
-      status: 'online',
-      route: '/dashboard/tools/hash-generator'
+      title: "Sessoes Ativas",
+      value: "1",
+      icon: BarChart3,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
     }
   ]
 
-  const handleNavigate = (route: string) => {
-    router.push(route)
-  }
-
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm md:text-base text-gray-600">Bem-vindo ao Tool Hub - Suas ferramentas em um só lugar</p>
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-gray-600">Bem-vindo ao Tool Hub</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-        {tools.map((tool) => {
-          const Icon = tool.icon
-          return (
-            <Card key={tool.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Icon className="h-5 w-5 text-blue-600" />
-                    <CardTitle className="text-lg">{tool.name}</CardTitle>
-                  </div>
-                  <Badge variant="success">Online</Badge>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.title}>
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold mt-2">{stat.value}</p>
                 </div>
-                <CardDescription>{tool.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="primary" 
-                  className="w-full"
-                  onClick={() => handleNavigate(tool.route)}
-                >
-                  Usar Ferramenta
-                </Button>
-              </CardContent>
-            </Card>
-          )
-        })}
+                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
 
+      {/* Quick Access */}
       <Card>
-        <CardHeader>
-          <CardTitle>Ações Rápidas</CardTitle>
-          <CardDescription>Acesso rápido às funcionalidades mais usadas</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button variant="secondary" className="justify-start gap-2" onClick={() => handleNavigate("/dashboard/tools/password-generator")}>
-            <Key className="h-4 w-4" />
-            Gerar Senha
-          </Button>
-          <Button variant="secondary" className="justify-start gap-2" onClick={() => handleNavigate("/dashboard/tools/uuid-generator")}>
-            <Hash className="h-4 w-4" />
-            Gerar UUID
-          </Button>
-          <Button variant="secondary" className="justify-start gap-2" onClick={() => handleNavigate("/dashboard/tools/base64")}>
-            <Binary className="h-4 w-4" />
-            Base64
-          </Button>
-          <Button variant="secondary" className="justify-start gap-2" onClick={() => handleNavigate("/dashboard/users")}>
-            <Users className="h-4 w-4" />
-            Usuários
-          </Button>
-        </CardContent>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Acesso Rapido</h3>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <a
+              href="/dashboard/tools/password-generator"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Key className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium">Gerador de Senhas</p>
+                  <p className="text-sm text-gray-500">Crie senhas seguras</p>
+                </div>
+              </div>
+            </a>
+            
+            <a
+              href="/dashboard/tools/uuid-generator"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-medium">Gerador UUID</p>
+                  <p className="text-sm text-gray-500">Gere UUIDs unicos</p>
+                </div>
+              </div>
+            </a>
+
+            <a
+              href="/dashboard/users"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="font-medium">Gerenciar Usuarios</p>
+                  <p className="text-sm text-gray-500">Administre usuarios</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </Card>
+
+      {/* Welcome Message */}
+      <Card>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-2">Bem-vindo ao Tool Hub!</h3>
+          <p className="text-gray-600">
+            Sua plataforma completa de ferramentas para desenvolvimento. 
+            Explore as opcoes do menu lateral para acessar todas as funcionalidades disponiveis.
+          </p>
+        </div>
       </Card>
     </div>
   )

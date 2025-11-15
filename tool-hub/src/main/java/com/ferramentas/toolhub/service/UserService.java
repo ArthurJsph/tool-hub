@@ -1,5 +1,7 @@
 package com.ferramentas.toolhub.service;
 
+import com.ferramentas.toolhub.dto.UpdateRoleRequestDTO;
+import com.ferramentas.toolhub.dto.UpdateUserRequestDTO;
 import com.ferramentas.toolhub.dto.UserRequestDTO;
 import com.ferramentas.toolhub.dto.UserResponseDTO;
 import com.ferramentas.toolhub.model.User;
@@ -79,9 +81,8 @@ public class UserService {
     @Transactional
     public UserResponseDTO saveFromDTO(UserRequestDTO userRequestDTO) {
         User user = convertToEntity(userRequestDTO);
-        if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
-            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
-        }
+        // A senha já está como texto simples vindo do DTO, então basta codificar uma vez
+        user.setPasswordHash(passwordEncoder.encode(userRequestDTO.passwordHash()));
         User savedUser = userRepository.save(user);
         return convertToResponseDTO(savedUser);
     }
@@ -104,9 +105,10 @@ public class UserService {
 
     private UserResponseDTO convertToResponseDTO(User user) {
         return new UserResponseDTO(
+                user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
-                "USER", // role padrão, pois não há campo role na entidade User
+                user.getRole(),
                 user.getCreatedAt().toString(),
                 user.getCreatedAt().toString() // usando createdAt como updatedAt pois não há campo updatedAt
         );
@@ -118,7 +120,76 @@ public class UserService {
         user.setUsername(dto.username());
         user.setEmail(dto.email());
         user.setPasswordHash(dto.passwordHash());
+        user.setRole("USER"); // role padrão
         user.setCreatedAt(LocalDateTime.now());
         return user;
+    }
+
+    /**
+     * Atualiza apenas a role de um usuário
+     */
+    @Transactional
+    public Optional<UserResponseDTO> updateRole(UUID id, UpdateRoleRequestDTO roleRequest) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setRole(roleRequest.role());
+            User updatedUser = userRepository.save(user);
+            return Optional.of(convertToResponseDTO(updatedUser));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Atualiza informações do usuário (username, email, role e opcionalmente senha)
+     */
+    @Transactional
+    public Optional<UserResponseDTO> updateUser(UUID id, UpdateUserRequestDTO updateRequest) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            // Atualiza apenas os campos que não são nulos
+            if (updateRequest.username() != null && !updateRequest.username().isEmpty()) {
+                user.setUsername(updateRequest.username());
+            }
+
+            if (updateRequest.email() != null && !updateRequest.email().isEmpty()) {
+                user.setEmail(updateRequest.email());
+            }
+
+            if (updateRequest.role() != null && !updateRequest.role().isEmpty()) {
+                user.setRole(updateRequest.role());
+            }
+
+            // Atualiza senha apenas se fornecida
+            if (updateRequest.passwordHash() != null && !updateRequest.passwordHash().isEmpty()) {
+                user.setPasswordHash(passwordEncoder.encode(updateRequest.passwordHash()));
+            }
+
+            User updatedUser = userRepository.save(user);
+            return Optional.of(convertToResponseDTO(updatedUser));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Verifica se um usuário tem uma determinada role
+     */
+    @Transactional
+    public boolean hasRole(UUID id, String role) {
+        Optional<User> userOptional = userRepository.findById(id);
+        return userOptional.map(user -> role.equalsIgnoreCase(user.getRole())).orElse(false);
+    }
+
+    /**
+     * Lista todos os usuários com uma determinada role
+     */
+    @Transactional
+    public List<UserResponseDTO> findByRole(String role) {
+        return userRepository.findAll().stream()
+                .filter(user -> role.equalsIgnoreCase(user.getRole()))
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
     }
 }

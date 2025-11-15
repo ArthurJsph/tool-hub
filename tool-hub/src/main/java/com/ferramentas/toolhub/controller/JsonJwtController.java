@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tools/json-jwt")
+@RequestMapping("/api/v1/tools/json-jwt")
 public class JsonJwtController {
 
     private final JsonJwtService jsonJwtService;

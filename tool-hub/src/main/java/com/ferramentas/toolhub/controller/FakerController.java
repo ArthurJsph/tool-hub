@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tools/faker")
+@RequestMapping("/api/v1/tools/faker")
 public class FakerController {
 
     private final FakerService fakerService;
