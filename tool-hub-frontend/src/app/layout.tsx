@@ -22,8 +22,8 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: "Tool Hub - Dashboard Admin",
-  description: "Dashboard administrativo com ferramentas de desenvolvedor",
+  title: "Tool Hub",
+  description: "Ferramentas essenciais para desenvolvedores modernos",
   generator: "v0.app",
   icons: {
     icon: "/tool-hub-icon.png",
