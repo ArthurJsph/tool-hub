@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface ToolUsageLogRepository extends JpaRepository<ToolUsageLog, UUID> {
+    long countByUserIdAndUsageTimestampBetween(UUID userId, java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

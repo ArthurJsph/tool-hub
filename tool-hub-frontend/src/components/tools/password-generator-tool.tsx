@@ -26,10 +26,10 @@ export function PasswordGeneratorTool() {
       })
     },
     onError: (error: unknown) => {
-      const errorMessage = error instanceof Error 
-        ? error.message 
+      const errorMessage = error instanceof Error
+        ? error.message
         : "Erro ao gerar senha"
-      
+
       toast({
         description: errorMessage,
         variant: "destructive",
@@ -50,14 +50,33 @@ export function PasswordGeneratorTool() {
 
   const copyToClipboard = async () => {
     if (!password) return
-    
+
     try {
-      await navigator.clipboard.writeText(password)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(password)
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea")
+        textArea.value = password
+        textArea.style.position = "fixed"
+        textArea.style.left = "-9999px"
+        textArea.style.top = "0"
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        document.execCommand('copy')
+        textArea.remove()
+      }
+
       toast({
+        title: "Copiado!",
         description: "Senha copiada para a área de transferência!",
+        variant: "success",
       })
-    } catch {
+    } catch (err) {
+      console.error('Failed to copy:', err)
       toast({
+        title: "Erro",
         description: "Erro ao copiar senha",
         variant: "destructive",
       })
@@ -126,8 +145,8 @@ export function PasswordGeneratorTool() {
               </Badge>
             </div>
 
-            <Button 
-              onClick={handleGenerate} 
+            <Button
+              onClick={handleGenerate}
               disabled={generateMutation.isPending}
               className="w-full"
             >
@@ -171,7 +190,7 @@ export function PasswordGeneratorTool() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">Tamanho:</span>

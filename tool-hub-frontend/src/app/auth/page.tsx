@@ -3,16 +3,17 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Code2, Github, Mail } from "lucide-react"
+import { Code2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import Cookies from "js-cookie"
 import { useToast } from "@/providers/ToastProvider"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<"login" | "signup" | "forgot">("login")
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth()
 
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -23,22 +24,7 @@ export default function AuthPage() {
     const password = formData.get("login-password") as string
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: email, password }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Credenciais inválidas")
-      }
-
-      const data = await response.json()
-      
-      // Salvar token no cookie
-      Cookies.set("token", data.token, { expires: 7 })
+      await login({ username: email, password })
 
       toast({
         title: "Login realizado!",
@@ -193,31 +179,28 @@ export default function AuthPage() {
               <div className="grid w-full grid-cols-3 gap-1 bg-gray-100 p-1 rounded-lg mb-6">
                 <button
                   onClick={() => setActiveTab("login")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
-                    activeTab === "login"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "login"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                    }`}
                 >
                   Login
                 </button>
                 <button
                   onClick={() => setActiveTab("signup")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
-                    activeTab === "signup"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "signup"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                    }`}
                 >
                   Criar Conta
                 </button>
                 <button
                   onClick={() => setActiveTab("forgot")}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${
-                    activeTab === "forgot"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-all ${activeTab === "forgot"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                    }`}
                 >
                   Recuperar
                 </button>
@@ -279,31 +262,7 @@ export default function AuthPage() {
                     </button>
                   </form>
 
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-gray-300" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">Ou continue com</span>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 transition-colors"
-                    >
-                      <Github className="mr-2 h-4 w-4" />
-                      Github
-                    </button>
-                    <button
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 transition-colors"
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Google
-                    </button>
-                  </div>
                 </div>
               )}
 
@@ -394,31 +353,7 @@ export default function AuthPage() {
                     </button>
                   </form>
 
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-gray-300" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">Ou cadastre-se com</span>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 transition-colors"
-                    >
-                      <Github className="mr-2 h-4 w-4" />
-                      Github
-                    </button>
-                    <button
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 transition-colors"
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Google
-                    </button>
-                  </div>
                 </div>
               )}
 

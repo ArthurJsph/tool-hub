@@ -37,14 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
       const response = await AuthService.login(credentials)
-      
+
+      console.log('Login response:', response)
       setToken(response.token)
       setUser(response.user)
-      
+
       // Salvar nos cookies
       Cookies.set('token', response.token, { expires: 7 }) // 7 dias
       Cookies.set('user', JSON.stringify(response.user), { expires: 7 })
-      
+      console.log('User saved to cookies:', response.user)
+
     } catch (error) {
       throw error
     } finally {

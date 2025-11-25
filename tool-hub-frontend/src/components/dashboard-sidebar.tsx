@@ -1,50 +1,59 @@
 "use client"
 
-import { 
-  BarChart3, 
-  Users, 
-  Key, 
-  Shield, 
-  Hash, 
+import {
+  BarChart3,
+  Users,
+  Key,
+  Shield,
+  Hash,
   Binary,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  UserCircle
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import { useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface SidebarProps {
   className?: string
 }
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    icon: BarChart3,
-    href: "/dashboard",
-  },
-  {
-    title: "Ferramentas",
-    icon: Key,
-    submenu: [
-      { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
-      { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
-      { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
-      { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-      { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
-    ]
-  },
-  {
-    title: "Usuários",
-    icon: Users,
-    href: "/dashboard/users",
-  },
-]
-
 export function DashboardSidebar({ className }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Ferramentas"])
+  const { user } = useAuth()
+
+  const menuItems = [
+    {
+      title: "Dashboard",
+      icon: BarChart3,
+      href: "/dashboard",
+    },
+    {
+      title: "Ferramentas",
+      icon: Key,
+      submenu: [
+        { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
+        { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
+        { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
+        { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
+        { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
+      ]
+    },
+    // Only show Users menu for ADMIN
+    ...(user?.role === 'ADMIN' ? [{
+      title: "Usuários",
+      icon: Users,
+      href: "/dashboard/users",
+    }] : []),
+    {
+      title: "Perfil",
+      icon: UserCircle,
+      href: "/dashboard/profile",
+    },
+  ]
 
   const handleNavigate = (href: string) => {
     router.push(href)
@@ -53,8 +62,8 @@ export function DashboardSidebar({ className }: SidebarProps) {
   const isActive = (href: string) => pathname === href
 
   const toggleMenu = (title: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(title) 
+    setExpandedMenus(prev =>
+      prev.includes(title)
         ? prev.filter(item => item !== title)
         : [...prev, title]
     )
@@ -67,7 +76,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
           <h2 className="text-lg font-semibold text-gray-900">Tool Hub</h2>
           <p className="text-sm text-gray-500">Painel de Controle</p>
         </div>
-        
+
         <nav className="flex-1 px-4 py-4 space-y-1">
           {menuItems.map((item) => (
             <div key={item.title}>
@@ -76,9 +85,9 @@ export function DashboardSidebar({ className }: SidebarProps) {
                   onClick={() => handleNavigate(item.href)}
                   className={`
                     w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-                    ${isActive(item.href) 
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
-                      : 'text-gray-700 hover:bg-gray-50'
+                    ${isActive(item.href)
+                      ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                      : 'text-muted-foreground hover:bg-muted'
                     }
                   `}
                 >
@@ -89,7 +98,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
                 <div>
                   <button
                     onClick={() => toggleMenu(item.title)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-muted-foreground rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center">
                       <item.icon className="mr-3 h-5 w-5" />
@@ -101,7 +110,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
                       <ChevronRight className="h-4 w-4" />
                     )}
                   </button>
-                  
+
                   {expandedMenus.includes(item.title) && item.submenu && (
                     <div className="mt-1 ml-6 space-y-1">
                       {item.submenu.map((subItem) => (
@@ -110,9 +119,9 @@ export function DashboardSidebar({ className }: SidebarProps) {
                           onClick={() => handleNavigate(subItem.href)}
                           className={`
                             w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors
-                            ${isActive(subItem.href) 
-                              ? 'bg-blue-50 text-blue-700 font-medium' 
-                              : 'text-gray-600 hover:bg-gray-50'
+                            ${isActive(subItem.href)
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-muted-foreground hover:bg-muted'
                             }
                           `}
                         >
@@ -127,7 +136,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
             </div>
           ))}
         </nav>
-        
+
         <div className="p-4 border-t border-gray-100">
           <div className="text-xs text-gray-500 text-center">
             Tool Hub v1.0

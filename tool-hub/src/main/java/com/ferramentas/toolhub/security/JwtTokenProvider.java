@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -29,6 +30,17 @@ public class JwtTokenProvider {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+
+        // Adicionar roles
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+
+        // Adicionar ID se disponível
+        if (userDetails instanceof CustomUserDetails) {
+            claims.put("id", ((CustomUserDetails) userDetails).getId());
+        }
+
         return createToken(claims, userDetails.getUsername());
     }
 

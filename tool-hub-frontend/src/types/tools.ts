@@ -53,10 +53,18 @@ export interface HashGeneratorResponse {
   input: string
 }
 
-export type ToolType = 
+export type ToolType =
   | 'password-generator'
-  | 'jwt-validator' 
+  | 'jwt-validator'
   | 'uuid-generator'
   | 'base64-encoder'
   | 'base64-decoder'
   | 'hash-generator'
+
+export interface DnsResult {
+  domain: string
+  A: string[]
+  MX: string[]
+  error?: string
+}
+

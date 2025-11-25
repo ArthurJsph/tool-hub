@@ -1,62 +1,65 @@
 "use client"
 
-import { DashboardSidebarResponsive } from '@/components/dashboard-sidebar-responsive'
-import { DashboardHeader } from '@/components/dashboard-header'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Card } from '@/components/Card'
-import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
-import { testURL, checkURLSecurity } from '@/services/toolsEnhancedService'
+import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
+import { useToast } from '@/providers/ToastProvider'
+import { testURL } from '@/services/toolsEnhancedService'
+import { Globe, Clock, Shield, AlertTriangle } from 'lucide-react'
 
-interface SimpleTab {
-  id: string
-  label: string
-}
-
-interface SimpleTabsProps {
-  tabs: SimpleTab[]
-  activeTab: string
-  onChange: (id: string) => void
-}
-
-function SimpleTabs({ tabs, activeTab, onChange }: SimpleTabsProps) {
-  return (
-    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onChange(tab.id)}
-          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === tab.id
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  )
+interface TestResult {
+  statusCode: number
+  statusText: string
+  responseTime: string
+  headers: Record<string, string | string[]>
+  body: string
+  security?: {
+    isHttps: boolean
+  }
 }
 
 export default function URLTesterPage() {
-  const [activeTab, setActiveTab] = useState('test')
+  const { toast } = useToast()
   const [url, setUrl] = useState('')
   const [method, setMethod] = useState('GET')
   const [headers, setHeaders] = useState('')
   const [body, setBody] = useState('')
-  const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [testResult, setTestResult] = useState<TestResult | null>(null)
+  const [activeTab, setActiveTab] = useState('body')
+
+  const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
+
+  const getStatusColor = (status: number) => {
+    if (status >= 200 && status < 300) return 'success'
+    if (status >= 300 && status < 400) return 'warning'
+    return 'danger'
+  }
 
   const handleTest = async () => {
+    if (!url) {
+      toast({
+        title: "Erro",
+        description: "URL é obrigatória",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setLoading(true)
     try {
-      setLoading(true)
-      let parsedHeaders: Record<string, string> = {}
-      if (headers.trim()) {
+      let parsedHeaders = {}
+      if (headers) {
         try {
           parsedHeaders = JSON.parse(headers)
         } catch {
-          setOutput(JSON.stringify({ error: 'Headers deve ser um JSON válido' }, null, 2))
+          toast({
+            title: "Erro",
+            description: "Headers deve ser um JSON válido",
+            variant: "destructive"
+          })
           return
         }
       }
@@ -67,118 +70,177 @@ export default function URLTesterPage() {
         headers: parsedHeaders,
         body: body.trim() || undefined
       })
-      setOutput(JSON.stringify(result, null, 2))
+      setTestResult(result as TestResult)
     } catch {
-      setOutput(JSON.stringify({ error: 'Erro ao testar URL' }, null, 2))
+      toast({
+        title: "Erro",
+        description: "Falha ao testar URL",
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSecurity = async () => {
-    try {
-      setLoading(true)
-      const result = await checkURLSecurity(url)
-      setOutput(JSON.stringify(result, null, 2))
-    } catch {
-      setOutput(JSON.stringify({ error: 'Erro ao verificar segurança' }, null, 2))
-    } finally {
-      setLoading(false)
+  const formatHeaderValue = (value: string | string[]) => {
+    if (Array.isArray(value)) {
+      return value.join(', ')
     }
+    return String(value)
   }
-
-  const tabs = [
-    { id: 'test', label: 'Testar URL' },
-    { id: 'security', label: 'Verificar Segurança' },
-  ]
-
-  const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <DashboardSidebarResponsive />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader />
-        
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">Testador de URL</h1>
-            <p className="text-gray-600 mt-2">Teste URLs e verifique sua segurança</p>
-          </div>
+    <>
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Testador de URL</h1>
+        <p className="text-muted-foreground mt-2">Teste endpoints e verifique respostas</p>
+      </div>
 
-          <Card className="p-6">
-            <SimpleTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-1 p-6 h-fit">
+          <h3 className="font-semibold mb-4 text-foreground">Configuração da Requisição</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">URL</label>
+              <Input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://api.example.com/v1/users"
+              />
+            </div>
 
-            <div className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Método</label>
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {methods.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Headers (JSON)</label>
+              <textarea
+                value={headers}
+                onChange={(e) => setHeaders(e.target.value)}
+                placeholder='{"Content-Type": "application/json"}'
+                className="w-full px-3 py-2 bg-background border border-input rounded-md min-h-[100px] font-mono text-sm"
+              />
+            </div>
+
+            {['POST', 'PUT', 'PATCH'].includes(method) && (
               <div>
-                <label className="block text-sm font-medium mb-2">URL</label>
-                <Input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/api/endpoint"
+                <label className="block text-sm font-medium mb-2">Body</label>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder='{"key": "value"}'
+                  className="w-full px-3 py-2 bg-background border border-input rounded-md min-h-[100px] font-mono text-sm"
                 />
               </div>
+            )}
 
-              {activeTab === 'test' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Método HTTP</label>
-                    <select
-                      value={method}
-                      onChange={(e) => setMethod(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                    >
-                      {methods.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
+            <Button
+              onClick={handleTest}
+              disabled={loading || !url}
+              className="w-full"
+            >
+              {loading ? 'Enviando Requisição...' : 'Enviar Requisição'}
+            </Button>
+          </div>
+        </Card>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Headers (JSON)</label>
-                    <Input
-                      value={headers}
-                      onChange={(e) => setHeaders(e.target.value)}
-                      placeholder='{"Content-Type": "application/json"}'
-                    />
-                  </div>
+        <Card className="lg:col-span-2 p-6 flex flex-col h-full min-h-[500px]">
+          <h3 className="font-semibold mb-4 text-foreground">Resposta</h3>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Body</label>
-                    <Input
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      placeholder="Request body (opcional)"
-                    />
-                  </div>
-                </>
-              )}
-
-              <Button
-                onClick={activeTab === 'test' ? handleTest : handleSecurity}
-                disabled={loading || !url}
-              >
-                {loading ? 'Processando...' : activeTab === 'test' ? 'Testar URL' : 'Verificar Segurança'}
-              </Button>
-
-              {output && (
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium">Resultado</label>
-                    <Button variant="secondary" onClick={() => navigator.clipboard.writeText(output)}>
-                      Copiar
-                    </Button>
-                  </div>
-                  <pre className="bg-gray-50 p-4 rounded-lg overflow-auto max-h-96 text-xs">
-                    {output}
-                  </pre>
+          {testResult ? (
+            <div className="space-y-6">
+              {/* Status Bar */}
+              <div className="flex flex-wrap gap-4 items-center p-4 bg-muted/30 rounded-lg border border-border">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                  <Badge variant={getStatusColor(testResult.statusCode)}>
+                    {testResult.statusCode} {testResult.statusText}
+                  </Badge>
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{testResult.responseTime}</span>
+                </div>
+                {testResult.security && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    {testResult.security.isHttps ? (
+                      <Badge variant="success" className="gap-1">
+                        <Shield className="h-3 w-3" /> HTTPS
+                      </Badge>
+                    ) : (
+                      <Badge variant="warning" className="gap-1">
+                        <AlertTriangle className="h-3 w-3" /> HTTP
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Tabs for Body/Headers */}
+              <div className="space-y-4">
+                <div className="flex gap-2 border-b border-border">
+                  <button
+                    onClick={() => setActiveTab('body')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'body' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Body
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('headers')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'headers' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Headers
+                  </button>
+                </div>
+
+                {activeTab === 'body' ? (
+                  <div className="relative">
+                    <pre className="bg-muted/50 p-4 rounded-lg overflow-auto max-h-[400px] text-xs font-mono border border-border">
+                      {testResult.body || <span className="text-muted-foreground italic">Sem conteúdo</span>}
+                    </pre>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-border rounded-lg">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                        <tr>
+                          <th className="px-4 py-2">Header</th>
+                          <th className="px-4 py-2">Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(testResult.headers).map(([key, value]) => (
+                          <tr key={key} className="border-b border-border last:border-0">
+                            <td className="px-4 py-2 font-medium">{key}</td>
+                            <td className="px-4 py-2 font-mono text-muted-foreground break-all">
+                              {formatHeaderValue(value)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
-          </Card>
-        </main>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-50">
+              <Globe className="h-16 w-16 mb-4" />
+              <p>Envie uma requisição para ver os resultados</p>
+            </div>
+          )}
+        </Card>
       </div>
-    </div>
+    </>
   )
 }

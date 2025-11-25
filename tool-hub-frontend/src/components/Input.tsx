@@ -15,12 +15,13 @@ export function Input({ label, error, className = '', ...props }: InputProps) {
       )}
       <input
         className={`
-          w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          disabled:bg-gray-50 disabled:cursor-not-allowed
-          ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
-          ${className}
-        `}
+            w-full px-4 py-2 bg-input text-foreground border border-border rounded-lg shadow-sm 
+            focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed
+            placeholder:text-muted-foreground
+            ${error ? 'border-destructive focus:ring-destructive focus:border-destructive' : ''}
+            ${className}
+          `}
         {...props}
       />
       {error && (
