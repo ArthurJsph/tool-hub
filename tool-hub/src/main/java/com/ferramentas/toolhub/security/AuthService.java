@@ -1,7 +1,8 @@
 package com.ferramentas.toolhub.security;
+
 import com.ferramentas.toolhub.model.User;
 import com.ferramentas.toolhub.repository.UserRepository;
-import com.ferramentas.toolhub.security.JwtTokenProvider;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,9 +21,9 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager,
-                       JwtTokenProvider jwtTokenProvider) {
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager,
+            JwtTokenProvider jwtTokenProvider) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -37,8 +38,7 @@ public class AuthService {
 
     public String loginUser(String username, String password) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+                new UsernamePasswordAuthenticationToken(username, password));
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return jwtTokenProvider.generateToken(userDetails);
     }

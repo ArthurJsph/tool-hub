@@ -1,11 +1,12 @@
 "use client"
 
-import { 
-  BarChart3, 
-  Users, 
-  Key, 
-  Shield, 
-  Hash, 
+import { useAuth } from "@/contexts/AuthContext"
+import {
+  BarChart3,
+  Users,
+  Key,
+  Shield,
+  Hash,
   Binary,
   ChevronDown,
   ChevronRight,
@@ -24,55 +25,47 @@ interface SidebarProps {
   className?: string
 }
 
-const menuItems = [
-  {
-    title: "Dashboard",
-    icon: BarChart3,
-    href: "/dashboard",
-  },
-  {
-    title: "Ferramentas",
-    icon: Key,
-    submenu: [
-      { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
-      { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
-      { title: "JSON/JWT Parser", href: "/dashboard/tools/json-jwt", icon: FileJson },
-      { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
-      { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-      { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
-      { title: "Gerador de Dados", href: "/dashboard/tools/faker", icon: UserPlus },
-      { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: Link },
-      { title: "Testador de Regex", href: "/dashboard/tools/regex", icon: Search },
-      { title: "Testador de URL", href: "/dashboard/tools/url-tester", icon: Globe },
-    ]
-  },
-  {
-    title: "Usuários",
-    icon: Users,
-    href: "/dashboard/users",
-  },
-]
-
 export function DashboardSidebarResponsive({ className }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Ferramentas"])
   const [isOpen, setIsOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const { user } = useAuth()
 
-  // Verificar se é mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth >= 768) {
-        setIsOpen(false)
-      }
-    }
-
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+  const menuItems = [
+    {
+      title: "Dashboard",
+      icon: BarChart3,
+      href: "/dashboard",
+    },
+    {
+      title: "Ferramentas",
+      icon: Key,
+      submenu: [
+        { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
+        { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
+        { title: "JSON/JWT Parser", href: "/dashboard/tools/json-jwt", icon: FileJson },
+        { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
+        { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
+        { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
+        { title: "Gerador de Dados", href: "/dashboard/tools/faker", icon: UserPlus },
+        { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: Link },
+        { title: "Testador de Regex", href: "/dashboard/tools/regex", icon: Search },
+        { title: "Testador de URL", href: "/dashboard/tools/url-tester", icon: Globe },
+        { title: "DNS Lookup", href: "/dashboard/tools/dns-lookup", icon: Globe },
+      ]
+    },
+    ...(user?.role === 'ADMIN' ? [{
+      title: "Usuários",
+      icon: Users,
+      href: "/dashboard/users",
+    }] : []),
+    {
+      title: "Perfil",
+      icon: Users,
+      href: "/dashboard/profile",
+    },
+  ]
 
   // Fechar sidebar ao navegar em mobile
   useEffect(() => {
@@ -86,8 +79,8 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
   const isActive = (href: string) => pathname === href
 
   const toggleMenu = (title: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(title) 
+    setExpandedMenus(prev =>
+      prev.includes(title)
         ? prev.filter(item => item !== title)
         : [...prev, title]
     )
@@ -99,8 +92,8 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
         <h2 className="text-lg font-semibold text-gray-900">Tool Hub</h2>
         <p className="text-sm text-gray-500">Painel de Controle</p>
       </div>
-      
-      <nav className="flex-1 px-4 py-4 space-y-1">
+
+      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => (
           <div key={item.title}>
             {item.href ? (
@@ -108,8 +101,8 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                 onClick={() => handleNavigate(item.href)}
                 className={`
                   w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-                  ${isActive(item.href) 
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                  ${isActive(item.href)
+                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                     : 'text-gray-700 hover:bg-gray-50'
                   }
                 `}
@@ -133,7 +126,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                     <ChevronRight className="h-4 w-4 flex-shrink-0" />
                   )}
                 </button>
-                
+
                 {expandedMenus.includes(item.title) && item.submenu && (
                   <div className="mt-1 ml-6 space-y-1">
                     {item.submenu.map((subItem) => (
@@ -142,8 +135,8 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                         onClick={() => handleNavigate(subItem.href)}
                         className={`
                           w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors
-                          ${isActive(subItem.href) 
-                            ? 'bg-blue-50 text-blue-700 font-medium' 
+                          ${isActive(subItem.href)
+                            ? 'bg-blue-50 text-blue-700 font-medium'
                             : 'text-gray-600 hover:bg-gray-50'
                           }
                         `}
@@ -159,52 +152,47 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
           </div>
         ))}
       </nav>
-      
+
       <div className="p-4 border-t border-gray-100">
         <div className="text-xs text-gray-500 text-center">
-          Tool Hub v1.0
+          Tool Hub v2.0
         </div>
       </div>
     </>
   )
 
-  // Versão Mobile (Hamburger Menu)
-  if (isMobile) {
-    return (
-      <div className={className}>
-        {/* Botão Hamburger */}
+  return (
+    <>
+      {/* Mobile Toggle Button */}
+      <div className="md:hidden p-4 border-b bg-white flex items-center justify-between">
+        <div className="font-semibold text-lg">Tool Hub</div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors md:hidden"
+          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Toggle menu"
         >
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
-
-        {/* Sidebar Mobile */}
-        {isOpen && (
-          <>
-            {/* Overlay */}
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Sidebar */}
-            <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-50 flex flex-col overflow-y-auto">
-              {sidebarContent}
-            </div>
-          </>
-        )}
       </div>
-    )
-  }
 
-  // Versão Desktop (Sidebar permanente)
-  return (
-    <div className={`w-64 bg-white border-r border-gray-200 h-full hidden md:flex flex-col ${className}`}>
-      {sidebarContent}
-    </div>
+      {/* Mobile Sidebar Overlay & Drawer */}
+      {isOpen && (
+        <div className="md:hidden relative z-50">
+          <div
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-64 bg-white border-r shadow-lg flex flex-col">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className={`hidden md:flex w-64 bg-sidebar border-r border-sidebar-border h-full flex-col ${className}`}>
+        {sidebarContent}
+      </div>
+    </>
   )
 }
 

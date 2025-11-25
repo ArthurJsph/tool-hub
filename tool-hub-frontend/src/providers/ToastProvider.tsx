@@ -5,7 +5,7 @@ import { useToast as useToastHook } from '@/hooks/use-toast'
 import { Toaster } from '@/components/Toast'
 
 interface ToastContextType {
-  toast: (options: { title?: string; description: string; variant?: 'default' | 'destructive' }) => void
+  toast: (options: { title?: string; description: string; variant?: 'default' | 'destructive' | 'success' }) => void
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)

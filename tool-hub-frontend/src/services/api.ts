@@ -1,13 +1,19 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import Cookies from 'js-cookie'
+import { User, CreateUserRequest, UpdateUserRequest } from '@/types/user'
+import { DnsResult } from '@/types/tools'
 
 class ApiService {
   private api: AxiosInstance
 
   constructor() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
-    console.log('🔧 API URL configurada:', apiUrl)
-    
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
+
+    // Ensure API URL ends with /api/v1
+    if (!apiUrl.includes('/api/v1')) {
+      apiUrl = `${apiUrl.replace(/\/$/, '')}/api/v1`
+    }
+
     this.api = axios.create({
       baseURL: apiUrl,
       headers: {
@@ -81,9 +87,9 @@ class ApiService {
   }
 
   async validateJWT(token: string, algorithm?: string): Promise<string> {
-    const response = await this.get<string>('/tools/jwt/validate', { 
-      token, 
-      algorithm: algorithm || 'HS256' 
+    const response = await this.get<string>('/tools/jwt/validate', {
+      token,
+      algorithm: algorithm || 'HS256'
     })
     return response
   }
@@ -127,7 +133,39 @@ class ApiService {
     return response.data
   }
 
+  // Cache para contagem de usuários
+  private userCountCache: { count: number; timestamp: number } | null = null
+  private usageTodayCache: { count: number; timestamp: number } | null = null
+  private readonly CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+
   // Métodos de usuários
+  async getUserCount(): Promise<number> {
+    const now = Date.now()
+    if (this.userCountCache && (now - this.userCountCache.timestamp < this.CACHE_DURATION)) {
+      return this.userCountCache.count
+    }
+
+    const response = await this.get<number>('/users/count')
+    this.userCountCache = { count: response, timestamp: now }
+    return response
+  }
+
+  async getUsageToday(): Promise<number> {
+    const now = Date.now()
+    if (this.usageTodayCache && (now - this.usageTodayCache.timestamp < this.CACHE_DURATION)) {
+      return this.usageTodayCache.count
+    }
+
+    const response = await this.get<number>('/users/me/usage/today')
+    this.usageTodayCache = { count: response, timestamp: now }
+    return response
+  }
+
+  // Ferramentas
+  async dnsLookup(domain: string): Promise<DnsResult> {
+    return this.get<DnsResult>(`/tools/dns/lookup?domain=${domain}`)
+  }
+
   async getUsers(): Promise<User[]> {
     const response = await this.get<User[]>('/users')
     return response
@@ -151,30 +189,6 @@ class ApiService {
   async deleteUser(id: string): Promise<void> {
     await this.delete<void>(`/users/${id}`)
   }
-}
-
-// Tipos para usuários
-export interface User {
-  id: string
-  username: string
-  email: string
-  role: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateUserRequest {
-  username: string
-  email: string
-  passwordHash: string
-  role: string
-}
-
-export interface UpdateUserRequest {
-  username?: string
-  email?: string
-  passwordHash?: string
-  role?: string
 }
 
 export const apiService = new ApiService()

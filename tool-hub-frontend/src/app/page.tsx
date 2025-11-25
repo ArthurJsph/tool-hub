@@ -1,14 +1,30 @@
-import { LoginForm } from "@/components/login-form"
+"use client"
 
-export default function LoginPage() {
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
+
+export default function HomePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // Verificar se já está autenticado
+    const token = Cookies.get('token')
+    
+    if (token) {
+      // Se tiver token, redirecionar para dashboard
+      router.push('/dashboard')
+    } else {
+      // Se não tiver token, redirecionar para auth
+      router.push('/auth')
+    }
+  }, [router])
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="font-serif font-bold text-3xl text-foreground mb-2">Dashboard Admin</h1>
-          <p className="text-muted-foreground">Faça login para acessar suas ferramentas</p>
-        </div>
-        <LoginForm />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Carregando...</p>
       </div>
     </div>
   )

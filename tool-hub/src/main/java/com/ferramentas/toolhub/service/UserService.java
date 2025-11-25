@@ -81,7 +81,8 @@ public class UserService {
     @Transactional
     public UserResponseDTO saveFromDTO(UserRequestDTO userRequestDTO) {
         User user = convertToEntity(userRequestDTO);
-        // A senha já está como texto simples vindo do DTO, então basta codificar uma vez
+        // A senha já está como texto simples vindo do DTO, então basta codificar uma
+        // vez
         user.setPasswordHash(passwordEncoder.encode(userRequestDTO.passwordHash()));
         User savedUser = userRepository.save(user);
         return convertToResponseDTO(savedUser);
@@ -120,7 +121,11 @@ public class UserService {
         user.setUsername(dto.username());
         user.setEmail(dto.email());
         user.setPasswordHash(dto.passwordHash());
-        user.setRole("USER"); // role padrão
+        if (dto.role() != null && !dto.role().isEmpty()) {
+            user.setRole(dto.role().toUpperCase());
+        } else {
+            user.setRole("USER"); // role padrão
+        }
         user.setCreatedAt(LocalDateTime.now());
         return user;
     }
@@ -191,5 +196,40 @@ public class UserService {
                 .filter(user -> role.equalsIgnoreCase(user.getRole()))
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Optional<UserResponseDTO> findByUsernameAsDTO(String username) {
+        return userRepository.findByUsername(username)
+                .map(this::convertToResponseDTO);
+    }
+
+    @Transactional
+    public Optional<UserResponseDTO> updateProfile(String username, UpdateUserRequestDTO updateRequest) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            if (updateRequest.username() != null && !updateRequest.username().isEmpty()) {
+                user.setUsername(updateRequest.username());
+            }
+            if (updateRequest.email() != null && !updateRequest.email().isEmpty()) {
+                user.setEmail(updateRequest.email());
+            }
+            // Profile update should NOT allow role change
+            if (updateRequest.passwordHash() != null && !updateRequest.passwordHash().isEmpty()) {
+                user.setPasswordHash(passwordEncoder.encode(updateRequest.passwordHash()));
+            }
+
+            User updatedUser = userRepository.save(user);
+            return Optional.of(convertToResponseDTO(updatedUser));
+        }
+        return Optional.empty();
+    }
+
+    @Transactional
+    @org.springframework.cache.annotation.Cacheable("userCount")
+    public long countActiveUsers() {
+        return userRepository.count();
     }
 }

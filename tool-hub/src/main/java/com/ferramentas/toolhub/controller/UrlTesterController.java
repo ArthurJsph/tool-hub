@@ -23,24 +23,12 @@ public class UrlTesterController {
     public ResponseEntity<Map<String, Object>> testUrl(@RequestBody UrlTestRequest request) {
         try {
             Map<String, Object> result = urlTestService.testUrl(
-                request.getUrl(),
-                request.getMethod(),
-                request.getHeaders(),
-                request.getParameters(),
-                request.getBody(),
-                request.getCheckSecurity()
-            );
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/security")
-    public ResponseEntity<Map<String, Object>> checkSecurity(@RequestBody Map<String, String> request) {
-        try {
-            String url = request.get("url");
-            Map<String, Object> result = urlTestService.checkUrlSecurity(url);
+                    request.getUrl(),
+                    request.getMethod(),
+                    request.getHeaders(),
+                    request.getParameters(),
+                    request.getBody(),
+                    request.getCheckSecurity());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -52,4 +40,3 @@ public class UrlTesterController {
         return ResponseEntity.ok(urlTestService.getHttpMethods());
     }
 }
-
