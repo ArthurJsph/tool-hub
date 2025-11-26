@@ -41,13 +41,12 @@ public class AuthController {
             String token = authService.loginUser(user.getUsername(), password);
 
             UserResponseDTO userResponse = new UserResponseDTO(
-                user.getId().toString(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getCreatedAt().toString(),
-                user.getCreatedAt().toString()
-            );
+                    user.getId().toString(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRole(),
+                    user.getCreatedAt().toString(),
+                    user.getCreatedAt().toString());
 
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -57,5 +56,25 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> register(
+            @RequestBody com.ferramentas.toolhub.dto.UserRequestDTO userRequest) {
+        try {
+            UserResponseDTO newUser = userService.saveFromDTO(userRequest);
+            return ResponseEntity.ok(newUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody Map<String, String> request) {
+        // Mock implementation for forgot password
+        // In a real app, this would send an email
+        String email = request.get("email");
+        System.out.println("Forgot password requested for: " + email);
+        return ResponseEntity.ok().build();
     }
 }

@@ -4,12 +4,12 @@
 
 **Uma plataforma web completa para ferramentas de desenvolvimento**
 
-[](https://openjdk.org/projects/jdk/17/)
-[](https://spring.io/projects/spring-boot)
-[](https://nextjs.org/)
-[](https://postgresql.org/)
-[](https://docker.com/)
-[](https://www.google.com/search?q=LICENSE)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-green)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 [🚀 Demo](https://www.google.com/search?q=%23demo) • [📖 Documentação](https://www.google.com/search?q=%23documenta%C3%A7%C3%A3o) • [🛠️ Instalação](https://www.google.com/search?q=%23instala%C3%A7%C3%A3o) • [🤝 Contribuir](https://www.google.com/search?q=%23contribui%C3%A7%C3%A3o)
 
@@ -28,7 +28,7 @@ O **Tool Hub** é uma aplicação web moderna que centraliza ferramentas essenci
   - **📝 Codificador Base64**: Codificação e decodificação de textos e arquivos.
   - **\#️⃣ Gerador de Hash**: Suporte a múltiplos algoritmos como SHA256 e MD5.
   - **🆔 Gerador UUID**: Geração rápida de UUIDs únicos.
-  - **👥 Gerenciamento de Usuários**: CRUD de usuários com controle de acesso.
+  - **👥 Gerenciamento de Usuários**: Registro, login, recuperação de senha e controle de acesso.
 
 ### 📊 Sistema de Monitoramento
 
@@ -116,6 +116,8 @@ A API é construída com o padrão RESTful. A documentação completa está disp
 ### Endpoints Principais
 
   - `POST /api/v1/auth/login`: Autentica o usuário e retorna um token JWT.
+  - `POST /api/v1/auth/register`: Cria uma nova conta de usuário.
+  - `POST /api/v1/auth/forgot-password`: Solicita recuperação de senha.
   - `GET /api/v1/users`: Lista todos os usuários (requer autenticação).
   - `POST /api/v1/tools/password`: Gera uma senha aleatória.
   - `POST /api/v1/tools/jwt/validate`: Valida um token JWT.

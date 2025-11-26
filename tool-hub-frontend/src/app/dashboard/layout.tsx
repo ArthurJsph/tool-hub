@@ -1,6 +1,7 @@
 import type React from "react"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardSidebarResponsive } from "@/components/dashboard-sidebar-responsive"
+import { Footer } from "@/components/Footer"
 
 export default function DashboardLayout({
   children,
@@ -21,6 +22,7 @@ export default function DashboardLayout({
           <main className="flex-1 p-4 md:p-6 overflow-y-auto">
             {children}
           </main>
+          <Footer />
         </div>
       </div>
     </div>
