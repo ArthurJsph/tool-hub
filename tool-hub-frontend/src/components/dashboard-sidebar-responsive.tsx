@@ -155,7 +155,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
 
       <div className="p-4 border-t border-gray-100">
         <div className="text-xs text-gray-500 text-center">
-          Tool Hub v2.0
+          Tool Hub v2.1
         </div>
       </div>
     </>

@@ -45,6 +45,16 @@ class ApiService {
           // Dispara evento customizado para notificar sobre sessão expirada
           window.dispatchEvent(new CustomEvent('sessionExpired'))
           window.location.href = '/'
+        } else if (error.response?.status === 403) {
+          // 403 Forbidden - User requested "Session Expired" message
+          window.dispatchEvent(new CustomEvent('sessionExpired', {
+            detail: { message: 'Sua sessão expirou.' }
+          }))
+        } else if (!error.response || error.code === 'ERR_NETWORK') {
+          // Erro de rede
+          window.dispatchEvent(new CustomEvent('networkError', {
+            detail: { message: 'Erro de conexão. Verifique sua internet e tente novamente.' }
+          }))
         }
         return Promise.reject(error)
       }
