@@ -25,7 +25,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO loginRequest,
+            jakarta.servlet.http.HttpServletResponse response) {
         try {
             String credential = loginRequest.username();
             String password = loginRequest.password();
@@ -40,6 +41,14 @@ public class AuthController {
 
             String token = authService.loginUser(user.getUsername(), password);
 
+            // Create HttpOnly cookie
+            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("token", token);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false); // Set to true in production (requires HTTPS)
+            cookie.setPath("/");
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+            response.addCookie(cookie);
+
             UserResponseDTO userResponse = new UserResponseDTO(
                     user.getId().toString(),
                     user.getUsername(),
@@ -48,14 +57,28 @@ public class AuthController {
                     user.getCreatedAt().toString(),
                     user.getCreatedAt().toString());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
-            response.put("user", userResponse);
+            Map<String, Object> responseBody = new HashMap<>();
+            // token is no longer needed in body for web apps, but keeping it for
+            // compatibility if needed
+            // responseBody.put("token", token);
+            responseBody.put("user", userResponse);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(responseBody);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(jakarta.servlet.http.HttpServletResponse response) {
+        // Clear cookie regardless of authentication state
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); // Delete cookie
+        response.addCookie(cookie);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/register")

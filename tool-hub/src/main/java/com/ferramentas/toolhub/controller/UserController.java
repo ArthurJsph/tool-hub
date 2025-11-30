@@ -56,8 +56,10 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> users = userService.findAllAsDTO();
+    public ResponseEntity<org.springframework.data.domain.Page<UserResponseDTO>> getAllUsers(
+            @org.springframework.data.web.PageableDefault(size = 10, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) org.springframework.data.domain.Pageable pageable,
+            @RequestParam(required = false) String search) {
+        org.springframework.data.domain.Page<UserResponseDTO> users = userService.findAllAsDTO(pageable, search);
         return ResponseEntity.ok(users);
     }
 

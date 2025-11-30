@@ -109,6 +109,46 @@ export default function DnsLookupPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-green-600" />
+                                Registros NS (Nameservers)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {results.NS && results.NS.length > 0 ? (
+                                <ul className="list-disc list-inside space-y-1">
+                                    {results.NS.map((ns: string, index: number) => (
+                                        <li key={index} className="font-mono text-sm break-all">{ns}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">Nenhum registro encontrado.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-orange-600" />
+                                Registros TXT
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {results.TXT && results.TXT.length > 0 ? (
+                                <ul className="list-disc list-inside space-y-1">
+                                    {results.TXT.map((txt: string, index: number) => (
+                                        <li key={index} className="font-mono text-sm break-all">{txt}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">Nenhum registro encontrado.</p>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             )}
         </div>

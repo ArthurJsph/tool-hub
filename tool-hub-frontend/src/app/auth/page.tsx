@@ -117,21 +117,17 @@ export default function AuthPage() {
 
       if (!response.ok) {
         throw new Error("Erro ao enviar email")
-      }
 
-      toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada",
-      })
-    } catch (error) {
+      }
+    } catch {
       toast({
         title: "Erro",
         description: "Não foi possível enviar o email de recuperação",
         variant: "destructive",
       })
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (

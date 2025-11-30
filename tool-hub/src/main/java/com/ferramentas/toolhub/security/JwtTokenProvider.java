@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION}")
+    @Value("${JWT_EXPIRATION:86400000}") // Default 24 hours
     private long expiration;
 
     private Key getSigningKey() {
@@ -52,6 +52,21 @@ public class JwtTokenProvider {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public java.util.List<org.springframework.security.core.GrantedAuthority> extractAuthorities(String token) {
+        Claims claims = extractAllClaims(token);
+        java.util.List<String> roles = claims.get("roles", java.util.List.class);
+        if (roles == null)
+            return java.util.Collections.emptyList();
+
+        return roles.stream()
+                .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    public Boolean validateToken(String token) {
+        return !isTokenExpired(token);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {

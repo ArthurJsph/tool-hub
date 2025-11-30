@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/providers/ToastProvider'
+import { useRecentHistory } from '@/hooks/useRecentHistory'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const { user, isLoading } = useAuth()
@@ -11,8 +12,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const { toast } = useToast()
 
+    const { addToHistory } = useRecentHistory()
+
     useEffect(() => {
         if (isLoading) return
+
+        // Track history for tools
+        if (pathname.startsWith('/dashboard/tools/')) {
+            addToHistory(pathname)
+        }
 
         // Define protected routes and required roles
         const protectedRoutes = [
@@ -38,7 +46,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 }
             }
         }
-    }, [user, isLoading, pathname, router, toast])
+    }, [user, isLoading, pathname, router, toast, addToHistory])
 
     return <>{children}</>
 }

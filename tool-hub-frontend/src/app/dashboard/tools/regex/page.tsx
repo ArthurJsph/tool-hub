@@ -26,8 +26,8 @@ function SimpleTabs({ tabs, activeTab, onChange }: SimpleTabsProps) {
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+            ? 'bg-white text-blue-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'
             }`}
         >
           {tab.label}
@@ -67,9 +67,7 @@ export default function RegexPage() {
 
     try {
       setLoading(true)
-      console.log('Testando regex:', { pattern, text })
       const result = await testRegex({ pattern, text })
-      console.log('Resultado regex:', result)
       setOutput(JSON.stringify(result, null, 2))
     } catch (error: unknown) {
       console.error('Erro ao testar regex:', error)

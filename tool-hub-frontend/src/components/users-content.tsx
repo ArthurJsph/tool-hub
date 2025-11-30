@@ -28,8 +28,15 @@ interface UserFormData {
   role: string
 }
 
+import { useUrlState } from "@/hooks/useUrlState"
+import { RefreshCw } from "lucide-react"
+import { Page, User } from "@/types/user"
+
 export function UsersContent() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const { getUrlState, setUrlState } = useUrlState()
+  const searchTerm = getUrlState("search") || ""
+  const page = parseInt(getUrlState("page") || "0")
+
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<string | null>(null)
   const [formData, setFormData] = useState<UserFormData>({
@@ -38,16 +45,15 @@ export function UsersContent() {
     passwordHash: "",
     role: "USER"
   })
-  
+
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
   // Buscar usuários da API
-  const { data: users = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => apiService.getUsers(),
+  const { data: usersPage, isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ['users', page, searchTerm],
+    queryFn: () => apiService.getUsers({ page, size: 10, search: searchTerm }),
     retry: (failureCount, error: unknown) => {
-      // Não retry se for erro 401 (será tratado pelo interceptor)
       if ((error as ApiError)?.response?.status === 401) {
         return false
       }
@@ -55,14 +61,26 @@ export function UsersContent() {
     }
   })
 
+  const users = usersPage?.content || []
+  const totalPages = usersPage?.totalPages || 0
+
   // Mutation para criar usuário
   const createUserMutation = useMutation({
     mutationFn: (userData: UserFormData) => apiService.createUser(userData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+    onSuccess: (newUser) => {
+      // Optimistic update: Add to cache without refetching
+      queryClient.setQueryData(['users', page, searchTerm], (oldData: Page<User> | undefined) => {
+        if (!oldData) return undefined
+        return {
+          ...oldData,
+          content: [newUser, ...oldData.content],
+          totalElements: oldData.totalElements + 1
+        }
+      })
+
       toast({
         title: "Usuário criado!",
-        description: "Usuário criado com sucesso",
+        description: "Usuário criado com sucesso. Clique no botão de recarregar para sincronizar se necessário.",
       })
       handleCloseModal()
     },
@@ -77,7 +95,7 @@ export function UsersContent() {
 
   // Mutation para atualizar usuário
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, userData }: { id: string; userData: Partial<UserFormData> }) => 
+    mutationFn: ({ id, userData }: { id: string; userData: Partial<UserFormData> }) =>
       apiService.updateUser(id, userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -151,7 +169,7 @@ export function UsersContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (editingUser) {
       // Update user - password is optional
       const updateData: Partial<UserFormData> = {
@@ -183,10 +201,8 @@ export function UsersContent() {
     }
   }
 
-  const filteredUsers = users.filter(user =>
-    (user.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Filter is now done on backend
+  // const filteredUsers = users.filter(...)
 
   if (error) {
     return (
@@ -219,6 +235,9 @@ export function UsersContent() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isLoading || isRefetching}>
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          </Button>
           <Button onClick={handleOpenCreateModal}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Usuário
@@ -232,7 +251,10 @@ export function UsersContent() {
           <Input
             placeholder="Buscar usuários..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setUrlState("search", e.target.value)
+              setUrlState("page", "0") // Reset to first page on search
+            }}
             className="pl-10"
           />
         </div>
@@ -244,7 +266,7 @@ export function UsersContent() {
             <Users className="h-5 w-5 text-blue-600" />
             <h3 className="text-lg font-semibold">Lista de Usuários</h3>
             <Badge variant="default" className="ml-auto">
-              {filteredUsers.length} usuários
+              {usersPage?.totalElements || 0} usuários
             </Badge>
           </div>
 
@@ -271,7 +293,7 @@ export function UsersContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
+                  {users.map((user) => (
                     <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
@@ -298,37 +320,86 @@ export function UsersContent() {
                       <td className="py-3 px-4 text-gray-600">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                       </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="secondary" 
-                          className="text-xs"
-                          onClick={() => handleOpenEditModal(user)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="danger" 
-                          className="text-xs"
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={deleteUserMutation.isPending}
-                        >
-                          {deleteUserMutation.isPending ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="secondary"
+                            className="text-xs"
+                            onClick={() => handleOpenEditModal(user)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            className="text-xs"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={deleteUserMutation.isPending}
+                          >
+                            {deleteUserMutation.isPending ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          {!isLoading && filteredUsers.length === 0 && (
+          {/* Pagination Controls */}
+          {!isLoading && totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
+              <div className="flex flex-1 justify-between sm:hidden">
+                <Button
+                  variant="secondary"
+                  onClick={() => setUrlState("page", (page - 1).toString())}
+                  disabled={page === 0}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setUrlState("page", (page + 1).toString())}
+                  disabled={page >= totalPages - 1}
+                >
+                  Próximo
+                </Button>
+              </div>
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Página <span className="font-medium">{page + 1}</span> de <span className="font-medium">{totalPages}</span>
+                  </p>
+                </div>
+                <div>
+                  <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <Button
+                      variant="secondary"
+                      className="rounded-l-md"
+                      onClick={() => setUrlState("page", (page - 1).toString())}
+                      disabled={page === 0}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="rounded-r-md ml-2"
+                      onClick={() => setUrlState("page", (page + 1).toString())}
+                      disabled={page >= totalPages - 1}
+                    >
+                      Próximo
+                    </Button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isLoading && users.length === 0 && (
             <div className="text-center py-8">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum usuário encontrado</h3>

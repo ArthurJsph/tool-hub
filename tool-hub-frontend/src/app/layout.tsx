@@ -22,9 +22,27 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: "Tool Hub",
-  description: "Ferramentas essenciais para desenvolvedores modernos",
-  generator: "v0.app",
+  title: {
+    default: "Tool-Hub",
+    template: "%s | Tool-Hub"
+  },
+  description: "Uma coleção completa de ferramentas essenciais para desenvolvedores: Gerador de Senhas, Validador JWT, UUID, Base64, e muito mais.",
+  keywords: ["ferramentas", "desenvolvedor", "jwt", "uuid", "base64", "regex", "dns", "json", "formatter"],
+  authors: [{ name: "Tool Hub Team" }],
+  creator: "Tool Hub",
+  publisher: "Tool Hub",
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://toolhub.com",
+    title: "Tool Hub - Ferramentas para Desenvolvedores",
+    description: "Ferramentas essenciais para desenvolvedores modernos",
+    siteName: "Tool Hub",
+  },
   icons: {
     icon: "/tool-hub-icon.png",
     shortcut: "/tool-hub-icon.png",

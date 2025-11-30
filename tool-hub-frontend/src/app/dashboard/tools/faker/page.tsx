@@ -32,9 +32,7 @@ export default function FakerPage() {
   const handleGenerate = async () => {
     try {
       setLoading(true)
-      console.log('Gerando dados faker:', { type, count, locale })
       const result = await generateFakeData({ type, count, locale })
-      console.log('Resultado faker:', result)
       setOutput(JSON.stringify(result.data, null, 2))
     } catch (error: unknown) {
       console.error('Erro ao gerar dados faker:', error)
@@ -47,6 +45,7 @@ export default function FakerPage() {
       setLoading(false)
     }
   }
+
 
   return (
     <>

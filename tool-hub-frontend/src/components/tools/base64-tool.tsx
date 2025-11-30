@@ -1,273 +1,242 @@
 "use client"
 
-import React, { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
-import { Textarea } from '@/components/Textarea'
-import { Binary, Copy, Loader2, ArrowRightLeft } from 'lucide-react'
-import toolsService from '@/services/api'
+import { Copy, Upload, FileText } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 
 export function Base64Tool() {
-  const [inputText, setInputText] = useState('')
-  const [base64Input, setBase64Input] = useState('')
-  const [encodedResult, setEncodedResult] = useState('')
-  const [decodedResult, setDecodedResult] = useState('')
-  const [activeTab, setActiveTab] = useState('encode')
-  
+  const [mode, setMode] = useState<'encode' | 'decode'>('encode')
+  const [input, setInput] = useState('')
+  const [output, setOutput] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
   const { toast } = useToast()
 
-  const encodeMutation = useMutation({
-    mutationFn: (input: string) => toolsService.encodeBase64(input),
-    onSuccess: (data: string) => {
-      setEncodedResult(data)
-      toast({
-        title: "Codificado!",
-        description: "Texto codificado em Base64 com sucesso",
-      })
-    },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Erro ao codificar'
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive"
-      })
-    }
-  })
+  const processInput = useCallback(() => {
+    if (file) return // File processing is handled separately
 
-  const decodeMutation = useMutation({
-    mutationFn: (input: string) => toolsService.decodeBase64(input),
-    onSuccess: (data: string) => {
-      setDecodedResult(data)
-      toast({
-        title: "Decodificado!",
-        description: "Base64 decodificado com sucesso",
-      })
-    },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Erro ao decodificar'
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive"
-      })
-    }
-  })
-
-  const handleEncode = () => {
-    if (!inputText.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Por favor, insira o texto para codificar",
-        variant: "destructive"
-      })
+    if (!input) {
+      setOutput('')
       return
     }
-    encodeMutation.mutate(inputText)
+
+    try {
+      if (mode === 'encode') {
+        // UTF-8 safe encoding
+        const encoded = btoa(unescape(encodeURIComponent(input)))
+        setOutput(encoded)
+      } else {
+        // UTF-8 safe decoding
+        const decoded = decodeURIComponent(escape(atob(input)))
+        setOutput(decoded)
+      }
+    } catch {
+      // Silent fail for invalid input while typing
+      if (mode === 'decode') {
+        setOutput('Texto Base64 inválido')
+      }
+    }
+  }, [input, mode, file])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      processInput()
+    }, 100) // Debounce
+    return () => clearTimeout(timer)
+  }, [processInput])
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0])
+    }
   }
 
-  const handleDecode = () => {
-    if (!base64Input.trim()) {
-      toast({
-        title: "Campo obrigatório", 
-        description: "Por favor, insira o Base64 para decodificar",
-        variant: "destructive"
-      })
-      return
+  const processFile = (file: File) => {
+    setFile(file)
+    setMode('encode') // Force encode mode for files
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      setInput(file.name) // Just for display
+      setOutput(result)
     }
-    decodeMutation.mutate(base64Input)
+    reader.readAsDataURL(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0])
+    }
+  }
+
+  const clearAll = () => {
+    setInput('')
+    setOutput('')
+    setFile(null)
   }
 
   const copyToClipboard = async (text: string) => {
+    if (!text) return
     try {
       await navigator.clipboard.writeText(text)
       toast({
         title: "Copiado!",
-        description: "Texto copiado para a área de transferência"
+        description: "Conteúdo copiado para a área de transferência"
       })
     } catch {
       toast({
         title: "Erro",
-        description: "Falha ao copiar para a área de transferência",
+        description: "Falha ao copiar",
         variant: "destructive"
       })
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Codificador/Decodificador Base64</h1>
-        <p className="text-gray-600">
-          Converta texto para Base64 e vice-versa com facilidade
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Base64 Converter</h1>
+          <p className="text-gray-600 text-sm">Codifique e decodifique textos e arquivos em tempo real</p>
+        </div>
 
-      {/* Tab Navigation */}
-      <div className="flex justify-center">
-        <div className="flex bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('encode')}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'encode' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
+        <div className="flex bg-gray-100 p-1 rounded-lg self-start">
+          <Button
+            variant={mode === 'encode' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => { setMode('encode'); clearAll(); }}
           >
-            Codificar
-          </button>
-          <button
-            onClick={() => setActiveTab('decode')}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              activeTab === 'decode' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
+            Encoder
+          </Button>
+          <Button
+            variant={mode === 'decode' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => { setMode('decode'); clearAll(); }}
           >
-            Decodificar
-          </button>
+            Decoder
+          </Button>
         </div>
       </div>
 
-      {/* Encode Tab */}
-      {activeTab === 'encode' && (
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Binary className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-semibold">Codificar para Base64</h2>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Digite o texto que você deseja codificar em Base64
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Texto para codificar
-                </label>
-                <Textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Digite o texto aqui..."
-                  className="min-h-[120px]"
-                />
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
+        {/* INPUT AREA */}
+        <Card className="flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h3 className="font-semibold text-gray-700">
+              {mode === 'encode' ? 'Entrada (Texto ou Arquivo)' : 'Entrada (Base64)'}
+            </h3>
+            {input && (
+              <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-medium">
+                Limpar
+              </button>
+            )}
+          </div>
 
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleEncode}
-                  disabled={encodeMutation.isPending}
-                  className="flex-1"
+          <div
+            className={`flex-1 relative p-4 transition-colors ${isDragging ? 'bg-blue-50' : 'bg-white'}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {!file ? (
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={mode === 'encode' ? "Digite o texto ou arraste um arquivo aqui..." : "Cole a string Base64 aqui..."}
+                className="w-full h-full resize-none outline-none text-sm font-mono bg-transparent"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <FileText className="h-12 w-12 mb-2 text-blue-500" />
+                <p className="font-medium text-gray-900">{file.name}</p>
+                <p className="text-xs">{(file.size / 1024).toFixed(2)} KB</p>
+                <button
+                  onClick={clearAll}
+                  className="mt-4 px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs hover:bg-red-100"
                 >
-                  {encodeMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <ArrowRightLeft className="mr-2 h-4 w-4" />
-                  )}
-                  Codificar
-                </Button>
-                
-                {encodedResult && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => copyToClipboard(encodedResult)}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copiar
-                  </Button>
-                )}
+                  Remover Arquivo
+                </button>
               </div>
+            )}
 
-              {encodedResult && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Resultado (Base64)
-                  </label>
-                  <Textarea
-                    value={encodedResult}
-                    readOnly
-                    className="min-h-[120px] bg-gray-50"
-                  />
+            {/* File Upload Overlay for Drag & Drop */}
+            {mode === 'encode' && !file && (
+              <div className={`absolute inset-0 pointer-events-none flex items-center justify-center bg-white/80 transition-opacity ${isDragging ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="text-center">
+                  <Upload className="h-10 w-10 mx-auto text-blue-500 mb-2" />
+                  <p className="text-blue-600 font-medium">Solte o arquivo aqui</p>
                 </div>
-              )}
+              </div>
+            )}
+          </div>
+
+          {mode === 'encode' && !file && (
+            <div className="p-3 border-t border-gray-100 bg-gray-50">
+              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer hover:text-blue-600 transition-colors w-fit">
+                <Upload className="h-4 w-4" />
+                <span>Carregar arquivo do computador</span>
+                <input type="file" className="hidden" onChange={handleFileChange} />
+              </label>
             </div>
+          )}
+        </Card>
+
+        {/* OUTPUT AREA */}
+        <Card className="flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h3 className="font-semibold text-gray-700">Resultado</h3>
+            <Button variant="ghost" size="sm" onClick={() => copyToClipboard(output)} disabled={!output}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar
+            </Button>
+          </div>
+
+          <div className="flex-1 p-4 bg-gray-50/50">
+            {output ? (
+              mode === 'encode' && file && file.type.startsWith('image/') ? (
+                <div className="flex flex-col h-full">
+                  <div className="flex-1 flex items-center justify-center border border-gray-200 rounded-lg bg-white mb-4 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={output} alt="Preview" className="max-w-full max-h-full object-contain" />
+                  </div>
+                  <div className="h-1/3">
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Data URI</label>
+                    <textarea
+                      readOnly
+                      value={output}
+                      className="w-full h-full resize-none text-xs font-mono border border-gray-200 rounded p-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <textarea
+                  readOnly
+                  value={output}
+                  className="w-full h-full resize-none outline-none text-sm font-mono bg-transparent text-gray-800"
+                />
+              )
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                O resultado aparecerá aqui...
+              </div>
+            )}
           </div>
         </Card>
-      )}
-
-      {/* Decode Tab */}
-      {activeTab === 'decode' && (
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Binary className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-semibold">Decodificar Base64</h2>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Digite o código Base64 que você deseja decodificar
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Base64 para decodificar
-                </label>
-                <Textarea
-                  value={base64Input}
-                  onChange={(e) => setBase64Input(e.target.value)}
-                  placeholder="Cole o código Base64 aqui..."
-                  className="min-h-[120px]"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleDecode}
-                  disabled={decodeMutation.isPending}
-                  className="flex-1"
-                >
-                  {decodeMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <ArrowRightLeft className="mr-2 h-4 w-4" />
-                  )}
-                  Decodificar
-                </Button>
-                
-                {decodedResult && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => copyToClipboard(decodedResult)}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copiar
-                  </Button>
-                )}
-              </div>
-
-              {decodedResult && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Resultado (Texto)
-                  </label>
-                  <Textarea
-                    value={decodedResult}
-                    readOnly
-                    className="min-h-[120px] bg-gray-50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
+      </div>
     </div>
   )
 }

@@ -73,6 +73,18 @@ public class UserService {
     }
 
     @Transactional
+    public org.springframework.data.domain.Page<UserResponseDTO> findAllAsDTO(
+            org.springframework.data.domain.Pageable pageable, String search) {
+        org.springframework.data.domain.Page<User> usersPage;
+        if (search != null && !search.trim().isEmpty()) {
+            usersPage = userRepository.searchByUsernameOrEmail(search, pageable);
+        } else {
+            usersPage = userRepository.findAll(pageable);
+        }
+        return usersPage.map(this::convertToResponseDTO);
+    }
+
+    @Transactional
     public Optional<UserResponseDTO> findByIdAsDTO(UUID id) {
         return userRepository.findById(id)
                 .map(this::convertToResponseDTO);
