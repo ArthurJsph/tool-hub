@@ -111,7 +111,13 @@ Para rodar o projeto sem Docker, você precisará ter o **Java 17+**, **Node.js 
 
 ## 📚 Documentação da API
 
-A API é construída com o padrão RESTful. A documentação completa está disponível em `/api-docs` (Swagger) ao rodar o backend.
+A API é construída com o padrão RESTful. Para detalhes específicos de cada parte do projeto, consulte as documentações dedicadas:
+
+- [📘 Documentação do Backend](docs/backend.md): Arquitetura, Segurança, Banco de Dados e API Reference.
+- [🎨 Documentação do Frontend](docs/frontend.md): Componentes, Estado, UI e Estrutura.
+- [🐳 Documentação do Docker](docs/docker.md): Configuração de containers, serviços e comandos.
+
+A documentação interativa (Swagger) também está disponível em `/api-docs` ao rodar o backend.
 
 ### Endpoints Principais
 
