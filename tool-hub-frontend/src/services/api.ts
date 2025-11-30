@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import Cookies from 'js-cookie'
-import { User, CreateUserRequest, UpdateUserRequest } from '@/types/user'
+import { User, CreateUserRequest, UpdateUserRequest, Page } from '@/types/user'
 import { DnsResult } from '@/types/tools'
 
 class ApiService {
@@ -16,12 +16,14 @@ class ApiService {
 
     this.api = axios.create({
       baseURL: apiUrl,
+      withCredentials: true, // Enable sending cookies
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
-    // Interceptor para adicionar token de autenticação
+    // Interceptor removed as token is now handled by HttpOnly cookie
+    /*
     this.api.interceptors.request.use(
       (config) => {
         const token = Cookies.get('token')
@@ -34,6 +36,7 @@ class ApiService {
         return Promise.reject(error)
       }
     )
+    */
 
     // Interceptor para tratar erros de resposta
     this.api.interceptors.response.use(
@@ -45,6 +48,16 @@ class ApiService {
           // Dispara evento customizado para notificar sobre sessão expirada
           window.dispatchEvent(new CustomEvent('sessionExpired'))
           window.location.href = '/'
+        } else if (error.response?.status === 403) {
+          // 403 Forbidden - User requested "Session Expired" message
+          window.dispatchEvent(new CustomEvent('sessionExpired', {
+            detail: { message: 'Sua sessão expirou.' }
+          }))
+        } else if (!error.response || error.code === 'ERR_NETWORK') {
+          // Erro de rede
+          window.dispatchEvent(new CustomEvent('networkError', {
+            detail: { message: 'Erro de conexão. Verifique sua internet e tente novamente.' }
+          }))
         }
         return Promise.reject(error)
       }
@@ -166,8 +179,8 @@ class ApiService {
     return this.get<DnsResult>(`/tools/dns/lookup?domain=${domain}`)
   }
 
-  async getUsers(): Promise<User[]> {
-    const response = await this.get<User[]>('/users')
+  async getUsers(params?: { page?: number; size?: number; search?: string }): Promise<Page<User>> {
+    const response = await this.get<Page<User>>('/users', params)
     return response
   }
 

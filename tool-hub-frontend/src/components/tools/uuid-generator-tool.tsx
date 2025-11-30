@@ -1,117 +1,89 @@
 "use client"
 
-import React, { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
-import { RefreshCw, Copy, Loader2, Settings } from 'lucide-react'
-import toolsService from '@/services/api'
+import { RefreshCw, Copy, Settings } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
+import { ulid } from 'ulid'
+import { nanoid, customAlphabet } from 'nanoid'
 
-
-type IdType = 'uuid' | 'numeric' | 'alphanumeric'
+type IdType = 'uuid' | 'ulid' | 'nanoid' | 'pin'
 
 export function UuidGeneratorTool() {
   const [generatedIds, setGeneratedIds] = useState<string[]>([])
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(5)
   const [type, setType] = useState<IdType>('uuid')
-  const [length, setLength] = useState(16)
+
+  // Options
+  const [uuidOptions, setUuidOptions] = useState({ hyphens: true, uppercase: false, braces: false, quotes: false })
+  const [pinLength, setPinLength] = useState(6)
+  const [nanoIdLength, setNanoIdLength] = useState(21)
+  const [nanoIdAlphabet, setNanoIdAlphabet] = useState('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-')
 
   const { toast } = useToast()
 
-  const generateIds = async () => {
+  const generateIds = useCallback(() => {
     const ids: string[] = []
 
-    if (type === 'uuid') {
-      // Use backend for UUID to verify connectivity, or could use crypto.randomUUID()
-      for (let i = 0; i < quantity; i++) {
-        const uuid = await toolsService.generateUUID()
-        ids.push(uuid)
+    for (let i = 0; i < quantity; i++) {
+      let id = ''
+
+      switch (type) {
+        case 'uuid':
+          id = crypto.randomUUID()
+          if (!uuidOptions.hyphens) id = id.replace(/-/g, '')
+          if (uuidOptions.uppercase) id = id.toUpperCase()
+          if (uuidOptions.braces) id = `{${id}}`
+          if (uuidOptions.quotes) id = `"${id}"`
+          break
+
+        case 'ulid':
+          id = ulid()
+          break
+
+        case 'nanoid':
+          if (nanoIdAlphabet !== '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-') {
+            const nanoidCustom = customAlphabet(nanoIdAlphabet, nanoIdLength)
+            id = nanoidCustom()
+          } else {
+            id = nanoid(nanoIdLength)
+          }
+          break
+
+        case 'pin':
+          const pinChars = '0123456789'
+          const randomValues = new Uint32Array(pinLength)
+          crypto.getRandomValues(randomValues)
+          for (let j = 0; j < pinLength; j++) {
+            id += pinChars[randomValues[j] % pinChars.length]
+          }
+          break
       }
-    } else {
-      // Local generation for other types
-      const chars = type === 'numeric'
-        ? '0123456789'
-        : 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-
-      for (let i = 0; i < quantity; i++) {
-        let result = ''
-        const randomValues = new Uint32Array(length)
-        crypto.getRandomValues(randomValues)
-
-        for (let j = 0; j < length; j++) {
-          result += chars[randomValues[j] % chars.length]
-        }
-        ids.push(result)
-      }
+      ids.push(id)
     }
-    return ids
-  }
 
-  const generateMutation = useMutation({
-    mutationFn: generateIds,
-    onSuccess: (data: string[]) => {
-      setGeneratedIds(data)
-      toast({
-        title: "Gerado com sucesso!",
-        description: `${data.length} identificador(es) gerado(s)`,
-        variant: "success"
-      })
-    },
-    onError: (error: unknown) => {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : 'Erro ao gerar identificadores'
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive"
-      })
-    }
-  })
+    setGeneratedIds(ids)
+  }, [type, quantity, uuidOptions, pinLength, nanoIdLength, nanoIdAlphabet])
 
-  const handleGenerate = () => {
-    if (quantity < 1 || quantity > 100) {
-      toast({
-        title: "Quantidade inválida",
-        description: "Por favor, insira uma quantidade entre 1 e 100",
-        variant: "destructive"
-      })
-      return
-    }
-    generateMutation.mutate()
-  }
+  // Auto-generate on load and when options change
+  useEffect(() => {
+    generateIds()
+  }, [generateIds])
 
   const copyToClipboard = async (text: string) => {
     if (!text) return
-
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text)
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement("textarea")
-        textArea.value = text
-        textArea.style.position = "fixed"
-        textArea.style.left = "-9999px"
-        textArea.style.top = "0"
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        document.execCommand('copy')
-        textArea.remove()
-      }
-
+      await navigator.clipboard.writeText(text)
       toast({
         title: "Copiado!",
         description: "Conteúdo copiado para a área de transferência",
         variant: "success"
       })
-    } catch (err) {
-      console.error('Failed to copy:', err)
+    } catch {
       toast({
         title: "Erro",
-        description: "Falha ao copiar. Tente selecionar e copiar manualmente.",
+        description: "Falha ao copiar",
         variant: "destructive"
       })
     }
@@ -123,124 +95,213 @@ export function UuidGeneratorTool() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Gerador de Identificadores</h1>
-        <p className="text-muted-foreground">
-          Gere UUIDs, IDs numéricos e strings aleatórias seguras
-        </p>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gerador de Identificadores</h1>
+          <p className="text-gray-600 text-sm">UUID, ULID, NanoID e PINs seguros</p>
+        </div>
       </div>
 
-      <Card>
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
-            <Settings className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">Configurações</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Tipo de Identificador
-              </label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as IdType)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-              >
-                <option value="uuid">UUID v4</option>
-                <option value="numeric">Numérico</option>
-                <option value="alphanumeric">Alfanumérico</option>
-              </select>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT COLUMN - CONTROLS */}
+        <Card className="lg:col-span-1 h-fit">
+          <div className="p-5 space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <Settings className="h-4 w-4 text-gray-500" />
+              <h2 className="font-semibold text-gray-900">Configuração</h2>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Quantidade (1-100)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-              />
-            </div>
-
-            {type !== 'uuid' && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Tamanho (Caracteres)
-                </label>
-                <input
-                  type="range"
-                  min="4"
-                  max="64"
-                  value={length}
-                  onChange={(e) => setLength(Number(e.target.value))}
-                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>4</span>
-                  <span className="font-medium text-primary">{length}</span>
-                  <span>64</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <Button
-            onClick={handleGenerate}
-            disabled={generateMutation.isPending}
-            className="w-full"
-          >
-            {generateMutation.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-2 h-4 w-4" />
-            )}
-            Gerar {type === 'uuid' ? 'UUIDs' : 'Identificadores'}
-          </Button>
-
-          {generatedIds.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-border">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-foreground">
-                  Resultados ({generatedIds.length})
-                </h3>
-                <Button
-                  variant="secondary"
-                  onClick={copyAllToClipboard}
-                  size="sm"
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copiar Todos
-                </Button>
-              </div>
-
-              <div className="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                {generatedIds.map((id, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-md border border-border group hover:border-primary/50 transition-colors"
+            {/* Type Selection */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700">Tipo</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['uuid', 'ulid', 'nanoid', 'pin'] as IdType[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md border transition-all ${type === t
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 ring-1 ring-blue-200'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
                   >
-                    <span className="font-mono text-sm text-foreground break-all">{id}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    {t === 'uuid' && 'UUID v4'}
+                    {t === 'ulid' && 'ULID'}
+                    {t === 'nanoid' && 'NanoID'}
+                    {t === 'pin' && 'PIN / OTP'}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
+
+            {/* Quantity Control */}
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <label className="text-sm font-medium text-gray-700">Quantidade</label>
+                <span className="text-sm font-mono bg-gray-100 px-2 rounded">{quantity}</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+              <div className="flex justify-between gap-2">
+                {[1, 5, 10, 50].map(q => (
+                  <button
+                    key={q}
+                    onClick={() => setQuantity(q)}
+                    className="flex-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Conditional Options */}
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              {type === 'uuid' && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-gray-700">Formatação</label>
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={uuidOptions.hyphens}
+                      onChange={(e) => setUuidOptions({ ...uuidOptions, hyphens: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Com Hífens
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={uuidOptions.uppercase}
+                      onChange={(e) => setUuidOptions({ ...uuidOptions, uppercase: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    MAIÚSCULAS
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={uuidOptions.braces}
+                      onChange={(e) => setUuidOptions({ ...uuidOptions, braces: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Chaves {'{uuid}'}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={uuidOptions.quotes}
+                      onChange={(e) => setUuidOptions({ ...uuidOptions, quotes: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Aspas &quot;uuid&quot;
+                  </label>
+                </div>
+              )}
+
+              {type === 'pin' && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-gray-700">Dígitos: {pinLength}</label>
+                  <input
+                    type="range"
+                    min="3"
+                    max="12"
+                    value={pinLength}
+                    onChange={(e) => setPinLength(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex justify-between gap-2">
+                    {[4, 6, 8].map(l => (
+                      <button
+                        key={l}
+                        onClick={() => setPinLength(l)}
+                        className="flex-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded"
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {type === 'nanoid' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Tamanho: {nanoIdLength}</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="36"
+                      value={nanoIdLength}
+                      onChange={(e) => setNanoIdLength(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mt-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Alfabeto</label>
+                    <input
+                      type="text"
+                      value={nanoIdAlphabet}
+                      onChange={(e) => setNanoIdAlphabet(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 text-xs font-mono border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {type === 'ulid' && (
+                <div className="p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                  ULIDs são ordenáveis lexicograficamente por tempo. Ótimo para chaves de banco de dados.
+                </div>
+              )}
+            </div>
+
+            <Button onClick={generateIds} className="w-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Gerar Novos
+            </Button>
+          </div>
+        </Card>
+
+        {/* RIGHT COLUMN - RESULTS */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <span className="text-sm font-medium text-gray-600">
+              {generatedIds.length} resultados gerados
+            </span>
+            <Button variant="secondary" size="sm" onClick={copyAllToClipboard}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copiar Todos
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="max-h-[600px] overflow-y-auto">
+              {generatedIds.map((id, idx) => (
+                <div
+                  key={idx}
+                  className="group flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-mono text-gray-800 break-all">{id}</span>
+                  <button
+                    onClick={() => copyToClipboard(id)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    title="Copiar"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

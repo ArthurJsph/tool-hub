@@ -29,13 +29,11 @@ public class DnsLookupService {
             }
             results.put("A", aRecords);
 
-            // MX Records
-            results.put("MX", getMxRecords(domain));
-
-            // CNAME Records (Basic check, might not always work depending on DNS config)
-            // Java's InetAddress doesn't directly expose CNAME easily without external libs
-            // or JNDI
-            // We can try to use JNDI for more detailed records
+            // Other Records using JNDI
+            results.put("MX", getRecords(domain, "MX"));
+            results.put("TXT", getRecords(domain, "TXT"));
+            results.put("NS", getRecords(domain, "NS"));
+            results.put("CNAME", getRecords(domain, "CNAME"));
 
         } catch (UnknownHostException e) {
             results.put("error", "Domain not found: " + e.getMessage());
@@ -46,21 +44,21 @@ public class DnsLookupService {
         return results;
     }
 
-    private List<String> getMxRecords(String domain) {
-        List<String> mxRecords = new ArrayList<>();
+    private List<String> getRecords(String domain, String type) {
+        List<String> records = new ArrayList<>();
         try {
             InitialDirContext iDirC = new InitialDirContext();
-            Attributes attributes = iDirC.getAttributes("dns:/" + domain, new String[] { "MX" });
-            Attribute attribute = attributes.get("MX");
+            Attributes attributes = iDirC.getAttributes("dns:/" + domain, new String[] { type });
+            Attribute attribute = attributes.get(type);
             if (attribute != null) {
                 NamingEnumeration<?> attributeValues = attribute.getAll();
                 while (attributeValues.hasMore()) {
-                    mxRecords.add(attributeValues.next().toString());
+                    records.add(attributeValues.next().toString());
                 }
             }
         } catch (Exception e) {
-            // Log or ignore if no MX records found
+            // Log or ignore if no records found
         }
-        return mxRecords;
+        return records;
     }
 }

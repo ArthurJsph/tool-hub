@@ -14,11 +14,16 @@ import {
   X,
   FileJson,
   UserPlus,
-  Link,
+  Link as LinkIcon,
   Search,
-  Globe
+  Globe,
+  Settings,
+  FileText,
+  LogOut,
+  User
 } from "lucide-react"
-import { useRouter, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { useState, useEffect } from "react"
 
 interface SidebarProps {
@@ -26,11 +31,10 @@ interface SidebarProps {
 }
 
 export function DashboardSidebarResponsive({ className }: SidebarProps) {
-  const router = useRouter()
   const pathname = usePathname()
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Ferramentas"])
   const [isOpen, setIsOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
 
   const menuItems = [
     {
@@ -49,7 +53,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
         { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
         { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
         { title: "Gerador de Dados", href: "/dashboard/tools/faker", icon: UserPlus },
-        { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: Link },
+        { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: LinkIcon },
         { title: "Testador de Regex", href: "/dashboard/tools/regex", icon: Search },
         { title: "Testador de URL", href: "/dashboard/tools/url-tester", icon: Globe },
         { title: "DNS Lookup", href: "/dashboard/tools/dns-lookup", icon: Globe },
@@ -65,16 +69,22 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
       icon: Users,
       href: "/dashboard/profile",
     },
+    {
+      title: "Configurações",
+      icon: Settings,
+      href: "/dashboard/settings",
+    },
+    {
+      title: "Termos de Uso",
+      icon: FileText,
+      href: "/dashboard/terms",
+    },
   ]
 
   // Fechar sidebar ao navegar em mobile
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
-
-  const handleNavigate = (href: string) => {
-    router.push(href)
-  }
 
   const isActive = (href: string) => pathname === href
 
@@ -97,8 +107,9 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
         {menuItems.map((item) => (
           <div key={item.title}>
             {item.href ? (
-              <button
-                onClick={() => handleNavigate(item.href)}
+              <Link
+                href={item.href}
+                onClick={() => setIsOpen(false)}
                 className={`
                   w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
                   ${isActive(item.href)
@@ -109,7 +120,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
               >
                 <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
                 <span className="flex-1 text-left">{item.title}</span>
-              </button>
+              </Link>
             ) : (
               <div>
                 <button
@@ -130,9 +141,12 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                 {expandedMenus.includes(item.title) && item.submenu && (
                   <div className="mt-1 ml-6 space-y-1">
                     {item.submenu.map((subItem) => (
-                      <button
+                      <Link
                         key={subItem.href}
-                        onClick={() => handleNavigate(subItem.href)}
+                        href={subItem.href}
+                        onClick={(e) => {
+                          setIsOpen(false);
+                        }}
                         className={`
                           w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors
                           ${isActive(subItem.href)
@@ -143,7 +157,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                       >
                         <subItem.icon className="mr-3 h-4 w-4 flex-shrink-0" />
                         <span className="flex-1 text-left">{subItem.title}</span>
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -153,9 +167,16 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-4 border-t border-gray-100 space-y-4">
+        <button
+          onClick={() => logout()}
+          className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Sair
+        </button>
         <div className="text-xs text-gray-500 text-center">
-          Tool Hub v2.0
+          Tool Hub v2.2
         </div>
       </div>
     </>
@@ -163,26 +184,39 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
-      <div className="md:hidden p-4 border-b bg-white flex items-center justify-between">
-        <div className="font-semibold text-lg">Tool Hub</div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+      {/* Mobile Toggle Button & Header */}
+      <div className="md:hidden p-4 border-b bg-white flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+          <div className="font-semibold text-lg">Tool Hub</div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 hidden sm:block">
+              {user?.username}
+            </span>
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium shadow-sm">
+              <User className="h-4 w-4" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Sidebar Overlay & Drawer */}
       {isOpen && (
         <div className="md:hidden relative z-50">
           <div
-            className="fixed inset-0 bg-black/50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-64 bg-white border-r shadow-lg flex flex-col">
+          <div className="fixed inset-y-0 left-0 w-64 bg-white border-r shadow-lg flex flex-col animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>

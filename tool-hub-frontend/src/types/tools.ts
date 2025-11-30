@@ -65,6 +65,9 @@ export interface DnsResult {
   domain: string
   A: string[]
   MX: string[]
+  TXT?: string[]
+  NS?: string[]
+  CNAME?: string[]
   error?: string
 }
 

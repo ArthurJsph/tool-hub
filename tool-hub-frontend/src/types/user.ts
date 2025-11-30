@@ -1,3 +1,14 @@
+export interface Page<T> {
+  content: T[]
+  totalPages: number
+  totalElements: number
+  size: number
+  number: number
+  last: boolean
+  first: boolean
+  empty: boolean
+}
+
 export interface UserRequestDTO {
   username: string
   email: string
@@ -12,13 +23,6 @@ export interface UserResponseDTO {
   role: string
   createdAt: string
   updatedAt: string
-}
-
-export interface UsersListResponse {
-  users: UserResponseDTO[]
-  total: number
-  page: number
-  limit: number
 }
 
 // Alias for UserResponseDTO to be used in the application

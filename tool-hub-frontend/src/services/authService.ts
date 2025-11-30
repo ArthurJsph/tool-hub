@@ -15,6 +15,10 @@ export class AuthService {
       return false
     }
   }
+
+  static async logout(): Promise<void> {
+    return apiService.post<void>('/auth/logout')
+  }
 }
 
 export default AuthService

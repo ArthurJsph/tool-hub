@@ -2,12 +2,12 @@ package com.ferramentas.toolhub.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION}")
+    @Value("${JWT_EXPIRATION:86400000}") // Default 24 hours
     private long expiration;
 
     private Key getSigningKey() {
@@ -46,12 +46,27 @@ public class JwtTokenProvider {
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey())
                 .compact();
+    }
+
+    public java.util.List<org.springframework.security.core.GrantedAuthority> extractAuthorities(String token) {
+        Claims claims = extractAllClaims(token);
+        java.util.List<String> roles = claims.get("roles", java.util.List.class);
+        if (roles == null)
+            return java.util.Collections.emptyList();
+
+        return roles.stream()
+                .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    public Boolean validateToken(String token) {
+        return !isTokenExpired(token);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
@@ -69,7 +84,11 @@ public class JwtTokenProvider {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
+        return Jwts.parser()
+                .verifyWith((SecretKey) getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public String extractUsername(String token) {

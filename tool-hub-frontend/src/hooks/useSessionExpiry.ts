@@ -27,13 +27,25 @@ export function useSessionExpiry() {
       })
     }
 
+    const handleNetworkError = (event: Event) => {
+      const customEvent = event as CustomEvent<{ message?: string }>
+      const message = customEvent.detail?.message || "Erro de conexão. Verifique sua internet."
+      toast({
+        title: "Erro de Conexão",
+        description: message,
+        variant: "destructive"
+      })
+    }
+
     // Escuta os eventos customizados
     window.addEventListener('sessionExpired', handleSessionExpired)
     window.addEventListener('accessDenied', handleAccessDenied)
+    window.addEventListener('networkError', handleNetworkError)
 
     return () => {
       window.removeEventListener('sessionExpired', handleSessionExpired)
       window.removeEventListener('accessDenied', handleAccessDenied)
+      window.removeEventListener('networkError', handleNetworkError)
     }
   }, [toast])
 }

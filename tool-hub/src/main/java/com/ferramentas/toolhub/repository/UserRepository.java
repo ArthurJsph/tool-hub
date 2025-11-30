@@ -13,8 +13,13 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
+
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u WHERE u.username = :credential OR u.email = :credential")
     Optional<User> findByUsernameOrEmail(@Param("credential") String credential);
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))")
+    org.springframework.data.domain.Page<User> searchByUsernameOrEmail(@Param("search") String search,
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -65,7 +65,7 @@ export default function AuthPage() {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/users`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,15 +104,30 @@ export default function AuthPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulação - implementar recuperação de senha no backend
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: (new FormData(e.currentTarget).get("forgot-email") as string),
+        }),
+      })
 
-    toast({
-      title: "Email enviado!",
-      description: "Verifique sua caixa de entrada",
-    })
+      if (!response.ok) {
+        throw new Error("Erro ao enviar email")
 
-    setIsLoading(false)
+      }
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar o email de recuperação",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
