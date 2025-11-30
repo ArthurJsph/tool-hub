@@ -7,6 +7,7 @@ import { Code2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/providers/ToastProvider"
 import { useAuth } from "@/contexts/AuthContext"
+import AuthService from "@/services/authService"
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -65,22 +66,12 @@ export default function AuthPage() {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: name,
-          email,
-          passwordHash: password,
-          role: "USER",
-        }),
+      await AuthService.register({
+        username: name,
+        email,
+        passwordHash: password,
+        role: "USER",
       })
-
-      if (!response.ok) {
-        throw new Error("Erro ao criar conta")
-      }
 
       toast({
         title: "Conta criada!",
@@ -89,12 +80,16 @@ export default function AuthPage() {
 
       // Mudar para a aba de login
       setActiveTab("login")
-    } catch (error) {
-      toast({
-        title: "Erro ao criar conta",
-        description: error instanceof Error ? error.message : "Tente novamente mais tarde",
-        variant: "destructive",
-      })
+    } catch (error: unknown) {
+      // Only show toast if it's NOT a network error (handled globally)
+      const err = error as { code?: string; response?: { data?: { message?: string } } }
+      if (err.code !== 'ERR_NETWORK') {
+        toast({
+          title: "Erro ao criar conta",
+          description: err.response?.data?.message || "Erro ao processar solicitação",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -105,26 +100,21 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: (new FormData(e.currentTarget).get("forgot-email") as string),
-        }),
-      })
+      await AuthService.forgotPassword((new FormData(e.currentTarget).get("forgot-email") as string))
 
-      if (!response.ok) {
-        throw new Error("Erro ao enviar email")
-
-      }
-    } catch {
       toast({
-        title: "Erro",
-        description: "Não foi possível enviar o email de recuperação",
-        variant: "destructive",
+        title: "Email enviado",
+        description: "Verifique sua caixa de entrada",
       })
+    } catch (error: unknown) {
+      const err = error as { code?: string }
+      if (err.code !== 'ERR_NETWORK') {
+        toast({
+          title: "Erro",
+          description: "Não foi possível enviar o email de recuperação",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }

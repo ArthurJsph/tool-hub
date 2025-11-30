@@ -3,6 +3,7 @@
 import React from "react"
 import { LogOut, User } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 
 export const DashboardHeader = React.memo(function DashboardHeader() {
@@ -40,12 +41,12 @@ export const DashboardHeader = React.memo(function DashboardHeader() {
                   <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                 </div>
 
-                <a href="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Link href="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                   Meu Perfil
-                </a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                </Link>
+                <Link href="/dashboard/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                   Configurações
-                </a>
+                </Link>
 
                 <div className="border-t border-gray-100 mt-1">
                   <button

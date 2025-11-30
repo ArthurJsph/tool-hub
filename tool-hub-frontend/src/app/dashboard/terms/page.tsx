@@ -2,87 +2,64 @@
 
 import React from 'react'
 import { Card } from '@/components/Card'
-import { Shield, Lock, Server, Globe } from 'lucide-react'
 
 export default function TermsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900">Termos de Uso e Privacidade</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Termos de Uso e Condições</h1>
                 <p className="text-gray-500 mt-4 text-lg">
-                    Compromisso com a segurança e privacidade dos seus dados.
+                    Última atualização: Novembro de 2025
                 </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <Card className="bg-blue-50 border-blue-100">
-                    <div className="p-6">
-                        <Shield className="h-8 w-8 text-blue-600 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Processamento Local (Client-Side)</h3>
-                        <p className="text-gray-700 leading-relaxed">
-                            A maioria das ferramentas disponíveis no Tool Hub (como Gerador de UUID, Base64, Hash, JWT Validator, Regex Tester) executa <strong>inteiramente no seu navegador</strong>.
-                        </p>
-                        <p className="text-gray-700 mt-2">
-                            Isso significa que seus dados sensíveis (senhas, tokens, textos) <strong>nunca deixam o seu dispositivo</strong> e não são enviados para nossos servidores.
-                        </p>
-                    </div>
-                </Card>
+            <Card className="p-8">
+                <div className="prose max-w-none space-y-6 text-gray-700">
+                    <p>
+                        Bem-vindo ao Tool-Hub. Ao acessar e utilizar nossas ferramentas, você concorda com os termos descritos abaixo.
+                    </p>
 
-                <Card className="bg-green-50 border-green-100">
-                    <div className="p-6">
-                        <Lock className="h-8 w-8 text-green-600 mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Dados Sensíveis</h3>
-                        <p className="text-gray-700 leading-relaxed">
-                            Nós não armazenamos, logamos ou monitoramos os inputs que você coloca nas ferramentas de criptografia ou segurança.
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">1. Aceitação dos Termos</h2>
+                        <p>
+                            Ao utilizar nossos serviços, você confirma que leu, entendeu e aceita estes termos. Se você não concordar com qualquer parte, não deverá utilizar nossas ferramentas.
                         </p>
-                        <p className="text-gray-700 mt-2">
-                            Ferramentas como o Validador de JWT apenas decodificam o token visualmente usando JavaScript local.
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">2. Uso das Ferramentas</h2>
+                        <p>
+                            O Tool-Hub fornece um conjunto de utilitários digitais para facilitar o dia a dia. Você concorda em usar estas ferramentas apenas para fins legais e éticos. É estritamente proibido:
                         </p>
-                    </div>
-                </Card>
-            </div>
+                        <ul className="list-disc pl-5 mt-2 space-y-1">
+                            <li>Tentar violar a segurança do sistema.</li>
+                            <li>Utilizar as ferramentas para gerar dados fraudulentos ou prejudiciais a terceiros.</li>
+                            <li>Realizar engenharia reversa de qualquer parte da plataforma.</li>
+                        </ul>
+                    </section>
 
-            <Card>
-                <div className="p-8 space-y-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Detalhes Técnicos</h2>
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">3. Isenção de Responsabilidade</h2>
+                        <p>
+                            Todas as ferramentas são fornecidas &quot;como estão&quot; (as-is), sem garantias de qualquer tipo. Embora nos esforcemos para garantir a precisão dos resultados (como geradores e validadores), o Tool-Hub não se responsabiliza por eventuais erros, imprecisões ou prejuízos decorrentes do uso das informações geradas aqui. O uso dos dados é de inteira responsabilidade do usuário.
+                        </p>
+                    </section>
 
-                    <div className="space-y-4">
-                        <div className="flex gap-4 items-start">
-                            <div className="p-2 bg-gray-100 rounded-lg shrink-0">
-                                <Globe className="h-5 w-5 text-gray-600" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-gray-900">Ferramentas de Rede (DNS, URL Tester)</h4>
-                                <p className="text-gray-600 mt-1">
-                                    Ferramentas que requerem acesso à rede externa (como DNS Lookup e URL Tester) utilizam um proxy seguro em nosso backend apenas para contornar restrições de CORS e realizar a consulta. Nós não armazenamos o conteúdo das requisições ou respostas.
-                                </p>
-                            </div>
-                        </div>
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">4. Disponibilidade do Serviço</h2>
+                        <p>
+                            Reservamo-nos o direito de modificar, suspender ou descontinuar qualquer ferramenta a qualquer momento, sem aviso prévio, para manutenções ou atualizações.
+                        </p>
+                    </section>
 
-                        <div className="flex gap-4 items-start">
-                            <div className="p-2 bg-gray-100 rounded-lg shrink-0">
-                                <Server className="h-5 w-5 text-gray-600" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-gray-900">Armazenamento Local</h4>
-                                <p className="text-gray-600 mt-1">
-                                    Utilizamos o <code>localStorage</code> do seu navegador apenas para melhorar sua experiência, salvando:
-                                </p>
-                                <ul className="list-disc list-inside mt-2 text-gray-600 ml-2 space-y-1">
-                                    <li>Histórico de ferramentas visitadas recentemente.</li>
-                                    <li>Lista de ferramentas favoritas.</li>
-                                    <li>Preferências de tema (Claro/Escuro).</li>
-                                </ul>
-                                <p className="text-gray-600 mt-2">
-                                    Você pode limpar esses dados a qualquer momento na página de Configurações.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <section>
+                        <h2 className="text-xl font-bold text-gray-900 mb-3">5. Contato</h2>
+                        <p>
+                            Caso tenha dúvidas sobre estes termos ou sobre o uso da plataforma, entre em contato através dos canais oficiais.
+                        </p>
+                    </section>
                 </div>
             </Card>
-
-
         </div>
     )
 }

@@ -35,11 +35,15 @@ export function LoginForm() {
         description: "Login realizado com sucesso!",
       })
       router.push("/dashboard")
-    } catch {
-      toast({
-        description: "Credenciais inválidas. Tente novamente.",
-        variant: "destructive",
-      })
+    } catch (error: unknown) {
+      // Only show toast if it's NOT a network error (handled globally)
+      const err = error as { code?: string }
+      if (err.code !== 'ERR_NETWORK') {
+        toast({
+          description: "Credenciais inválidas. Tente novamente.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +68,7 @@ export function LoginForm() {
               placeholder="Digite seu usuário"
               disabled={isLoading}
             />
-            
+
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
                 Senha

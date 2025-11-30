@@ -144,9 +144,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                       <Link
                         key={subItem.href}
                         href={subItem.href}
-                        onClick={(e) => {
-                          setIsOpen(false);
-                        }}
+                        onClick={() => setIsOpen(false)}
                         className={`
                           w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors
                           ${isActive(subItem.href)

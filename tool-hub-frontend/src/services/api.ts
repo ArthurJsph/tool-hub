@@ -23,27 +23,16 @@ class ApiService {
     })
 
     // Interceptor removed as token is now handled by HttpOnly cookie
-    /*
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = Cookies.get('token')
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
-        return config
-      },
-      (error) => {
-        return Promise.reject(error)
-      }
-    )
-    */
+    // Interceptor removed as token is now handled by HttpOnly cookie
 
     // Interceptor para tratar erros de resposta
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
-          // Token expirado ou inválido
+        const isLoginRequest = error.config?.url?.includes('/auth/login')
+
+        if (error.response?.status === 401 && !isLoginRequest) {
+          // Token expirado ou inválido (exceto no login)
           Cookies.remove('token')
           // Dispara evento customizado para notificar sobre sessão expirada
           window.dispatchEvent(new CustomEvent('sessionExpired'))
@@ -55,6 +44,8 @@ class ApiService {
           }))
         } else if (!error.response || error.code === 'ERR_NETWORK') {
           // Erro de rede
+          // Check if we already dispatched recently to avoid duplicates (optional, but good practice)
+          // For now, relying on the fact that one request = one error
           window.dispatchEvent(new CustomEvent('networkError', {
             detail: { message: 'Erro de conexão. Verifique sua internet e tente novamente.' }
           }))

@@ -19,6 +19,14 @@ export class AuthService {
   static async logout(): Promise<void> {
     return apiService.post<void>('/auth/logout')
   }
+
+  static async register(data: { username: string; email: string; passwordHash: string; role: string }): Promise<unknown> {
+    return apiService.post('/auth/register', data)
+  }
+
+  static async forgotPassword(email: string): Promise<void> {
+    return apiService.post('/auth/forgot-password', { email })
+  }
 }
 
 export default AuthService
