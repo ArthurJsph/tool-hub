@@ -11,7 +11,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-[🚀 Demo](https://www.google.com/search?q=%23demo) • [📖 Documentação](https://www.google.com/search?q=%23documenta%C3%A7%C3%A3o) • [🛠️ Instalação](https://www.google.com/search?q=%23instala%C3%A7%C3%A3o) • [🤝 Contribuir](https://www.google.com/search?q=%23contribui%C3%A7%C3%A3o)
+[🚀 Demo](https://www.google.com/search?q=%23demo) • [📖 Documentação](docs/frontend.md) • [🎨 Frontend](docs/frontend.md) • [🖥️ Backend](docs/backend.md) • [🐳 Docker](docs/docker.md) • [🛠️ Instalação](https://www.google.com/search?q=%23instala%C3%A7%C3%A3o) • [🤝 Contribuir](https://www.google.com/search?q=%23contribui%C3%A7%C3%A3o)
 
 -----
 
