@@ -1,0 +1,10 @@
+{
+  "name": "Tool Hub",
+  "short_name": "Tool Hub",
+  "description": "Ferramentas essenciais para desenvolvedores",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": []
+}

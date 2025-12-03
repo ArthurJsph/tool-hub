@@ -71,3 +71,47 @@ export interface DnsResult {
   error?: string
 }
 
+// Tool Management DTOs (for admin CRUD)
+export interface ToolDTO {
+  id: string
+  name: string
+  description: string
+  path: string
+  icon: string
+  keywords: string[]
+  enabled: boolean
+  order: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreateToolRequest {
+  name: string
+  description: string
+  path: string
+  icon: string
+  keywords: string[]
+  enabled?: boolean
+  order?: number
+}
+
+export interface UpdateToolRequest {
+  name?: string
+  description?: string
+  path?: string
+  icon?: string
+  keywords?: string[]
+  enabled?: boolean
+  order?: number
+}
+
+export interface ToolsPageResponse {
+  content: ToolDTO[]
+  totalPages: number
+  totalElements: number
+  size: number
+  number: number
+  last: boolean
+  first: boolean
+  empty: boolean
+}

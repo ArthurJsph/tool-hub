@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { storage, STORAGE_KEYS } from '@/lib/storage'
 
 export function useFavorites() {
     const [favorites, setFavorites] = useState<string[]>([])
 
     useEffect(() => {
-        const stored = localStorage.getItem('toolhub_favorites')
+        const stored = storage.getJSON<string[]>(STORAGE_KEYS.FAVORITES)
         if (stored) {
-            setFavorites(JSON.parse(stored))
+            setFavorites(stored)
         }
     }, [])
 
@@ -18,7 +19,7 @@ export function useFavorites() {
             : [...favorites, path]
 
         setFavorites(newFavorites)
-        localStorage.setItem('toolhub_favorites', JSON.stringify(newFavorites))
+        storage.setJSON(STORAGE_KEYS.FAVORITES, newFavorites)
     }
 
     const isFavorite = (path: string) => favorites.includes(path)

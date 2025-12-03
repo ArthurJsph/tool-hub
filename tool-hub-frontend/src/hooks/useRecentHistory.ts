@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
+import { storage, STORAGE_KEYS } from '@/lib/storage'
 
 interface HistoryItem {
     path: string
@@ -11,9 +12,9 @@ export function useRecentHistory() {
     const [history, setHistory] = useState<HistoryItem[]>([])
 
     useEffect(() => {
-        const stored = localStorage.getItem('toolhub_history')
+        const stored = storage.getJSON<HistoryItem[]>(STORAGE_KEYS.HISTORY)
         if (stored) {
-            setHistory(JSON.parse(stored))
+            setHistory(stored)
         }
     }, [])
 
@@ -25,7 +26,7 @@ export function useRecentHistory() {
                 ...prevHistory.filter(h => h.path !== path)
             ].slice(0, 5) // Keep last 5
 
-            localStorage.setItem('toolhub_history', JSON.stringify(newHistory))
+            storage.setJSON(STORAGE_KEYS.HISTORY, newHistory)
             return newHistory
         })
     }, [])

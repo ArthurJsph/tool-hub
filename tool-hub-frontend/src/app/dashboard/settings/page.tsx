@@ -5,19 +5,20 @@ import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Trash2, Moon, Sun } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
+import { storage, STORAGE_KEYS } from '@/lib/storage'
 
 export default function SettingsPage() {
     const { toast } = useToast()
 
     const clearHistory = () => {
-        localStorage.removeItem('toolhub_history')
-        localStorage.removeItem('toolhub_favorites') // Optional, maybe separate?
+        storage.remove(STORAGE_KEYS.HISTORY)
+        storage.remove(STORAGE_KEYS.FAVORITES)
         toast({
             title: "Histórico Limpo",
             description: "Seu histórico de ferramentas foi apagado.",
             variant: "default"
         })
-        // Force reload to update UI components that rely on localStorage
+        // Force reload to update UI components that rely on storage
         window.location.reload()
     }
 
@@ -66,7 +67,7 @@ export default function SettingsPage() {
                 <div className="p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Sobre</h3>
                     <div className="text-sm text-gray-600 space-y-2">
-                        <p><strong>Versão:</strong> 2.2.0</p>
+                        <p><strong>Versão:</strong> 2.3.0</p>
                         <p><strong>Ambiente:</strong> Produção</p>
                         <p><strong>Contato:</strong> suporte@toolhub.com</p>
                     </div>

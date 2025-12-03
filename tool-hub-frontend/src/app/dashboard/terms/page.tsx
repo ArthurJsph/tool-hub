@@ -66,7 +66,7 @@ export default function TermsPage() {
                             <div>
                                 <h4 className="font-semibold text-gray-900">Armazenamento Local</h4>
                                 <p className="text-gray-600 mt-1">
-                                    Utilizamos o <code>localStorage</code> do seu navegador apenas para melhorar sua experiência, salvando:
+                                    Utilizamos o <code>sessionStorage</code> do seu navegador apenas para melhorar sua experiência, salvando:
                                 </p>
                                 <ul className="list-disc list-inside mt-2 text-gray-600 ml-2 space-y-1">
                                     <li>Histórico de ferramentas visitadas recentemente.</li>

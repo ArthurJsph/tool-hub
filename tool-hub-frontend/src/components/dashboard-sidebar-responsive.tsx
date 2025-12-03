@@ -1,22 +1,18 @@
 "use client"
 
 import { useAuth } from "@/contexts/AuthContext"
+import { toolService } from "@/services/toolService"
+import { getIcon } from "@/components/icon-mapper"
+import { Tool } from "@/types/tool"
 import {
   BarChart3,
   Users,
   Key,
   Shield,
-  Hash,
-  Binary,
   ChevronDown,
   ChevronRight,
   Menu,
   X,
-  FileJson,
-  UserPlus,
-  Link as LinkIcon,
-  Search,
-  Globe,
   Settings,
   FileText,
   LogOut,
@@ -35,6 +31,26 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Ferramentas"])
   const [isOpen, setIsOpen] = useState(false)
   const { user, logout } = useAuth()
+  const [activeTools, setActiveTools] = useState<Tool[]>([])
+
+  useEffect(() => {
+    const fetchActiveTools = async () => {
+      try {
+        const tools = await toolService.getActiveTools()
+        setActiveTools(tools)
+      } catch (error) {
+        console.error("Failed to fetch active tools", error)
+      }
+    }
+    fetchActiveTools()
+  }, [])
+
+  const toolMenuItems = activeTools.map(tool => ({
+    title: tool.title,
+    href: tool.href || `/dashboard/tools/${tool.key}`,
+    icon: getIcon(tool.icon),
+    key: tool.key
+  }))
 
   const menuItems = [
     {
@@ -45,25 +61,22 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
     {
       title: "Ferramentas",
       icon: Key,
-      submenu: [
-        { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
-        { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
-        { title: "JSON/JWT Parser", href: "/dashboard/tools/json-jwt", icon: FileJson },
-        { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
-        { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-        { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
-        { title: "Gerador de Dados", href: "/dashboard/tools/faker", icon: UserPlus },
-        { title: "Analisador de URL", href: "/dashboard/tools/url-parser", icon: LinkIcon },
-        { title: "Testador de Regex", href: "/dashboard/tools/regex", icon: Search },
-        { title: "Testador de URL", href: "/dashboard/tools/url-tester", icon: Globe },
-        { title: "DNS Lookup", href: "/dashboard/tools/dns-lookup", icon: Globe },
-      ]
+      submenu: toolMenuItems
     },
-    ...(user?.role === 'ADMIN' ? [{
-      title: "Usuários",
-      icon: Users,
-      href: "/dashboard/users",
-    }] : []),
+    ...(user?.role === 'ADMIN' ? [
+      {
+        title: "Usuários",
+        icon: Users,
+        href: "/dashboard/users",
+      },
+      {
+        title: "Administração",
+        icon: Shield,
+        submenu: [
+          { title: "Gerenciar Ferramentas", href: "/dashboard/tools/settings", icon: Key },
+        ]
+      }
+    ] : []),
     {
       title: "Perfil",
       icon: Users,
@@ -138,13 +151,13 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
                   )}
                 </button>
 
-                {expandedMenus.includes(item.title) && item.submenu && (
+                {expandedMenus.includes(item.title) && item.submenu && item.submenu.length > 0 && (
                   <div className="mt-1 ml-6 space-y-1">
                     {item.submenu.map((subItem) => (
                       <Link
                         key={subItem.href}
                         href={subItem.href}
-                        onClick={(e) => {
+                        onClick={() => {
                           setIsOpen(false);
                         }}
                         className={`
@@ -176,7 +189,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
           Sair
         </button>
         <div className="text-xs text-gray-500 text-center">
-          Tool Hub v2.2
+          Tool Hub v2.3
         </div>
       </div>
     </>

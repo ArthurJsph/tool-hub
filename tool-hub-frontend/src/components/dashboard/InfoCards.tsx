@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/Card'
 import { Lightbulb, Newspaper, Activity } from 'lucide-react'
+import { storage, STORAGE_KEYS } from '@/lib/storage'
 
 const TIPS = [
     "Use Ctrl+K para buscar ferramentas rapidamente.",
@@ -20,7 +21,7 @@ export function InfoCards() {
         setTip(TIPS[Math.floor(Math.random() * TIPS.length)])
 
         interface HistoryItem { path: string; timestamp: number }
-        const history: HistoryItem[] = JSON.parse(localStorage.getItem('toolhub_history') || '[]')
+        const history = storage.getJSON<HistoryItem[]>(STORAGE_KEYS.HISTORY) || []
 
         // Filter unique tools used today
         const today = new Date().setHours(0, 0, 0, 0)

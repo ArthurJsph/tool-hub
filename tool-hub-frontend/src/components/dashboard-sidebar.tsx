@@ -5,15 +5,16 @@ import {
   Users,
   Key,
   Shield,
-  Hash,
-  Binary,
   ChevronDown,
   ChevronRight,
   UserCircle
 } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
+import { toolService } from "@/services/toolService"
+import { getIcon } from "@/components/icon-mapper"
+import { Tool } from "@/types/tool"
 
 interface SidebarProps {
   className?: string
@@ -24,6 +25,26 @@ export function DashboardSidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Ferramentas"])
   const { user } = useAuth()
+  const [activeTools, setActiveTools] = useState<Tool[]>([])
+
+  useEffect(() => {
+    const fetchActiveTools = async () => {
+      try {
+        const tools = await toolService.getActiveTools()
+        setActiveTools(tools)
+      } catch (error) {
+        console.error("Failed to fetch active tools", error)
+      }
+    }
+    fetchActiveTools()
+  }, [])
+
+  const toolMenuItems = activeTools.map(tool => ({
+    title: tool.title,
+    href: tool.href || `/dashboard/tools/${tool.key}`, // Fallback if href is missing
+    icon: getIcon(tool.icon),
+    key: tool.key
+  }))
 
   const menuItems = [
     {
@@ -34,20 +55,23 @@ export function DashboardSidebar({ className }: SidebarProps) {
     {
       title: "Ferramentas",
       icon: Key,
-      submenu: [
-        { title: "Gerador de Senhas", href: "/dashboard/tools/password-generator", icon: Key },
-        { title: "Validador JWT", href: "/dashboard/tools/jwt-validator", icon: Shield },
-        { title: "Gerador UUID", href: "/dashboard/tools/uuid-generator", icon: Hash },
-        { title: "Base64", href: "/dashboard/tools/base64", icon: Binary },
-        { title: "Hash", href: "/dashboard/tools/hash-generator", icon: Hash },
-      ]
+      submenu: toolMenuItems
     },
-    // Only show Users menu for ADMIN
-    ...(user?.role === 'ADMIN' ? [{
-      title: "Usuários",
-      icon: Users,
-      href: "/dashboard/users",
-    }] : []),
+    // Only show Admin menus for ADMIN
+    ...(user?.role === 'ADMIN' ? [
+      {
+        title: "Usuários",
+        icon: Users,
+        href: "/dashboard/users",
+      },
+      {
+        title: "Administração",
+        icon: Shield,
+        submenu: [
+          { title: "Gerenciar Ferramentas", href: "/dashboard/tools/settings", icon: Key },
+        ]
+      }
+    ] : []),
     {
       title: "Perfil",
       icon: UserCircle,
@@ -111,7 +135,7 @@ export function DashboardSidebar({ className }: SidebarProps) {
                     )}
                   </button>
 
-                  {expandedMenus.includes(item.title) && item.submenu && (
+                  {expandedMenus.includes(item.title) && item.submenu && item.submenu.length > 0 && (
                     <div className="mt-1 ml-6 space-y-1">
                       {item.submenu.map((subItem) => (
                         <button

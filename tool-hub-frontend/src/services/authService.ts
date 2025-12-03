@@ -3,13 +3,14 @@ import apiService from './api'
 
 export class AuthService {
   static async login(credentials: LoginRequestDTO): Promise<LoginResponseDTO> {
+    // The token is now set in an HttpOnly cookie by the backend
     return apiService.post<LoginResponseDTO>('/auth/login', credentials)
   }
 
   static async validateToken(): Promise<boolean> {
     try {
-      // Pode ser implementado se o backend tiver endpoint para validar token
-      // Por enquanto, assumimos que o interceptor do axios já trata isso
+      // We can check if the user is authenticated by trying to fetch their profile
+      await apiService.get('/users/me')
       return true
     } catch {
       return false

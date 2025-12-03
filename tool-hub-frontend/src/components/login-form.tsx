@@ -37,7 +37,7 @@ export function LoginForm() {
       router.push("/dashboard")
     } catch {
       toast({
-        description: "Credenciais inválidas. Tente novamente.",
+        description: "Credenciais inválidas",
         variant: "destructive",
       })
     } finally {
@@ -64,7 +64,7 @@ export function LoginForm() {
               placeholder="Digite seu usuário"
               disabled={isLoading}
             />
-            
+
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
                 Senha

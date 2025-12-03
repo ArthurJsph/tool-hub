@@ -46,7 +46,7 @@ public class AuthController {
             cookie.setHttpOnly(true);
             cookie.setSecure(false); // Set to true in production (requires HTTPS)
             cookie.setPath("/");
-            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+            cookie.setMaxAge(31536000); // 1 year (365 * 24 * 60 * 60)
             response.addCookie(cookie);
 
             UserResponseDTO userResponse = new UserResponseDTO(

@@ -10,10 +10,25 @@ import { nanoid, customAlphabet } from 'nanoid'
 
 type IdType = 'uuid' | 'ulid' | 'nanoid' | 'pin'
 
+// UUID v4 generator fallback for server-side rendering
+function generateUUIDv4(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  
+  // Fallback for environments without crypto.randomUUID
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
 export function UuidGeneratorTool() {
   const [generatedIds, setGeneratedIds] = useState<string[]>([])
   const [quantity, setQuantity] = useState(5)
   const [type, setType] = useState<IdType>('uuid')
+  const [isMounted, setIsMounted] = useState(false)
 
   // Options
   const [uuidOptions, setUuidOptions] = useState({ hyphens: true, uppercase: false, braces: false, quotes: false })
@@ -23,7 +38,13 @@ export function UuidGeneratorTool() {
 
   const { toast } = useToast()
 
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const generateIds = useCallback(() => {
+    if (!isMounted) return
+    
     const ids: string[] = []
 
     for (let i = 0; i < quantity; i++) {
@@ -31,7 +52,7 @@ export function UuidGeneratorTool() {
 
       switch (type) {
         case 'uuid':
-          id = crypto.randomUUID()
+          id = generateUUIDv4()
           if (!uuidOptions.hyphens) id = id.replace(/-/g, '')
           if (uuidOptions.uppercase) id = id.toUpperCase()
           if (uuidOptions.braces) id = `{${id}}`
@@ -54,7 +75,14 @@ export function UuidGeneratorTool() {
         case 'pin':
           const pinChars = '0123456789'
           const randomValues = new Uint32Array(pinLength)
-          crypto.getRandomValues(randomValues)
+          if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+            crypto.getRandomValues(randomValues)
+          } else {
+            // Fallback for environments without crypto
+            for (let j = 0; j < pinLength; j++) {
+              randomValues[j] = Math.floor(Math.random() * 10)
+            }
+          }
           for (let j = 0; j < pinLength; j++) {
             id += pinChars[randomValues[j] % pinChars.length]
           }
@@ -64,7 +92,7 @@ export function UuidGeneratorTool() {
     }
 
     setGeneratedIds(ids)
-  }, [type, quantity, uuidOptions, pinLength, nanoIdLength, nanoIdAlphabet])
+  }, [isMounted, type, quantity, uuidOptions, pinLength, nanoIdLength, nanoIdAlphabet])
 
   // Auto-generate on load and when options change
   useEffect(() => {

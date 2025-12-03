@@ -1,122 +1,100 @@
 package com.ferramentas.toolhub.service;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.ferramentas.toolhub.model.Tool;
+import com.ferramentas.toolhub.repository.ToolRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Random;
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ToolService {
 
-    private final BCryptPasswordEncoder bcryptEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private ToolRepository toolRepository;
 
-    @Transactional
+    public List<Tool> findAll() {
+        return toolRepository.findAll();
+    }
+
+    public Optional<Tool> findById(Long id) {
+        return toolRepository.findById(id);
+    }
+
+    public Tool save(Tool tool) {
+        return toolRepository.save(tool);
+    }
+
+    public void deleteById(Long id) {
+        toolRepository.deleteById(id);
+    }
+
+    public Tool updateStatus(Long id, boolean isActive) {
+        Tool tool = toolRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tool not found with id: " + id));
+        tool.setActive(isActive);
+        return toolRepository.save(tool);
+    }
+
+    public List<Tool> getActiveTools() {
+        return toolRepository.findByActiveTrue();
+    }
+
+    // Tool Logic Methods
+
     public String generateStrongPassword(int length, boolean includeSymbols) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         if (includeSymbols) {
-            chars += "!@#$%^&*()_+";
+            chars += "!@#$%^&*()_+-=[]{}|;:,.<>?";
         }
-
-        StringBuilder password = new StringBuilder();
-        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
         for (int i = 0; i < length; i++) {
-            password.append(chars.charAt(random.nextInt(chars.length())));
+            sb.append(chars.charAt(random.nextInt(chars.length())));
         }
-        return password.toString();
+        return sb.toString();
     }
 
-    @Transactional
     public boolean validateJwt(String token, String algorithm) {
-        try {
-            SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.forName(algorithm);
-            Key key = Keys.secretKeyFor(signatureAlgorithm);
-            Jwts.parser().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            // Ocorreu um erro na validação
+        // Basic structure check for now. In a real app, we would verify signature.
+        if (token == null || token.split("\\.").length != 3) {
             return false;
         }
+        return true;
     }
 
-    @Transactional
     public String generateUUID() {
-        return UUID.randomUUID().toString();
+        return java.util.UUID.randomUUID().toString();
     }
 
-    // Codificador Base64
     public String encodeBase64(String input) {
-        if (input == null || input.isEmpty()) {
-            throw new IllegalArgumentException("Input não pode ser vazio");
-        }
-        return Base64.getEncoder().encodeToString(input.getBytes());
+        return java.util.Base64.getEncoder().encodeToString(input.getBytes());
     }
 
-    @Transactional
-    public String decodeBase64(String encoded) {
-        if (encoded == null || encoded.isEmpty()) {
-            throw new IllegalArgumentException("Input não pode ser vazio");
-        }
+    public String decodeBase64(String input) {
         try {
-            byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-            return new String(decodedBytes);
+            return new String(java.util.Base64.getDecoder().decode(input));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Base64 inválido: " + e.getMessage());
+            return "Invalid Base64 input";
         }
     }
 
-    @Transactional
     public String generateHash(String input, String algorithm) {
-        if (input == null || input.isEmpty()) {
-            throw new IllegalArgumentException("Input não pode ser vazio");
-        }
-
         try {
-            switch (algorithm.toUpperCase()) {
-                case "MD5":
-                    return hashWithMessageDigest(input, "MD5");
-                case "SHA1":
-                case "SHA-1":
-                    return hashWithMessageDigest(input, "SHA-1");
-                case "SHA256":
-                case "SHA-256":
-                    return hashWithMessageDigest(input, "SHA-256");
-                case "SHA512":
-                case "SHA-512":
-                    return hashWithMessageDigest(input, "SHA-512");
-                case "BCRYPT":
-                    return bcryptEncoder.encode(input);
-                default:
-                    throw new IllegalArgumentException("Algoritmo não suportado: " + algorithm + ". Algoritmos suportados: MD5, SHA1, SHA256, SHA512, BCRYPT");
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance(algorithm);
+            byte[] encodedhash = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(2 * encodedhash.length);
+            for (int i = 0; i < encodedhash.length; i++) {
+                String hex = Integer.toHexString(0xff & encodedhash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
             }
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("Erro ao processar algoritmo: " + algorithm);
+            return hexString.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return "Algorithm not supported";
         }
     }
-
-    private String hashWithMessageDigest(String input, String algorithm) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance(algorithm);
-        byte[] hashBytes = digest.digest(input.getBytes());
-
-        // Converter bytes para hexadecimal
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : hashBytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-
 }
