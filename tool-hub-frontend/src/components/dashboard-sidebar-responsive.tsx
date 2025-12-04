@@ -189,7 +189,7 @@ export function DashboardSidebarResponsive({ className }: SidebarProps) {
           Sair
         </button>
         <div className="text-xs text-gray-500 text-center">
-          Tool Hub v2.3
+          Tool Hub v2.4
         </div>
       </div>
     </>

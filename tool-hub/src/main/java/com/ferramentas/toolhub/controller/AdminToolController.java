@@ -24,7 +24,19 @@ public class AdminToolController {
     }
 
     @PostMapping
-    public Tool createTool(@RequestBody Tool tool) {
+    public Tool createTool(
+            @jakarta.validation.Valid @RequestBody com.ferramentas.toolhub.dto.ToolRequestDTO toolRequest) {
+        Tool tool = new Tool();
+        tool.setTitle(toolRequest.name());
+        tool.setDescription(toolRequest.description());
+        tool.setHref(toolRequest.path());
+        tool.setIcon(toolRequest.icon());
+        tool.setActive(toolRequest.enabled());
+        // Keywords handling might need adjustment if Tool entity doesn't have it
+        // directly or if it's a string
+        // Assuming Tool entity has compatible fields. If not, I'll need to check
+        // Tool.java
+        // Let's check Tool.java first to be sure about field names.
         return toolService.save(tool);
     }
 

@@ -5,6 +5,7 @@ import { Card } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Copy, Upload, FileText } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
+import { copyToClipboard } from '@/lib/clipboard-utils'
 
 export function Base64Tool() {
   const [mode, setMode] = useState<'encode' | 'decode'>('encode')
@@ -89,15 +90,15 @@ export function Base64Tool() {
     setFile(null)
   }
 
-  const copyToClipboard = async (text: string) => {
+  const handleCopy = async (text: string) => {
     if (!text) return
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    if (success) {
       toast({
         title: "Copiado!",
         description: "Conteúdo copiado para a área de transferência"
       })
-    } catch {
+    } else {
       toast({
         title: "Erro",
         description: "Falha ao copiar",
@@ -199,7 +200,7 @@ export function Base64Tool() {
         <Card className="flex flex-col h-full overflow-hidden">
           <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h3 className="font-semibold text-gray-700">Resultado</h3>
-            <Button variant="ghost" size="sm" onClick={() => copyToClipboard(output)} disabled={!output}>
+            <Button variant="ghost" size="sm" onClick={() => handleCopy(output)} disabled={!output}>
               <Copy className="h-4 w-4 mr-2" />
               Copiar
             </Button>

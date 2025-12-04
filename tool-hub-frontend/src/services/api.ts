@@ -41,14 +41,27 @@ class ApiService {
     // Interceptor para tratar erros de resposta
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expirado ou inválido
-          Cookies.remove('token')
-          // Dispara evento customizado para notificar sobre sessão expirada
-          window.dispatchEvent(new CustomEvent('sessionExpired'))
-          window.location.href = '/'
-        } else if (error.response?.status === 403) {
+      async (error) => {
+        const originalRequest = error.config
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true
+
+          try {
+            // Tenta renovar o token
+            await this.post('/auth/refresh')
+            // Se conseguir, refaz a requisição original
+            return this.api(originalRequest)
+          } catch (refreshError) {
+            // Se falhar, redireciona para login
+            Cookies.remove('token')
+            window.dispatchEvent(new CustomEvent('sessionExpired'))
+            window.location.href = '/auth'
+            return Promise.reject(refreshError)
+          }
+        }
+
+        if (error.response?.status === 403) {
           // 403 Forbidden - User requested "Session Expired" message
           window.dispatchEvent(new CustomEvent('sessionExpired', {
             detail: { message: 'Sua sessão expirou.' }

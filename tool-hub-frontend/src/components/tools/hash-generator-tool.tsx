@@ -6,6 +6,7 @@ import { Textarea } from '@/components/Textarea'
 import { Copy, Upload, FileText, CheckCircle, XCircle } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 import CryptoJS from 'crypto-js'
+import { copyToClipboard } from '@/lib/clipboard-utils'
 
 export function HashGeneratorTool() {
   const [input, setInput] = useState('')
@@ -86,14 +87,14 @@ export function HashGeneratorTool() {
     setCompareHash('')
   }
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
+  const handleCopy = async (text: string) => {
+    const success = await copyToClipboard(text)
+    if (success) {
       toast({
         title: "Copiado!",
         description: "Hash copiado para a área de transferência"
       })
-    } catch {
+    } else {
       toast({
         title: "Erro",
         description: "Falha ao copiar",
@@ -214,7 +215,7 @@ export function HashGeneratorTool() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
-                            onClick={() => copyToClipboard(hash)}
+                            onClick={() => handleCopy(hash)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
                             title="Copiar"
                           >

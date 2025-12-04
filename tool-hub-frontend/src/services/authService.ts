@@ -7,13 +7,25 @@ export class AuthService {
     return apiService.post<LoginResponseDTO>('/auth/login', credentials)
   }
 
+  static async refreshToken(): Promise<void> {
+    return apiService.post<void>('/auth/refresh')
+  }
+
   static async validateToken(): Promise<boolean> {
     try {
       // We can check if the user is authenticated by trying to fetch their profile
       await apiService.get('/users/me')
       return true
     } catch {
-      return false
+      // If validation fails, try to refresh token
+      try {
+        await this.refreshToken()
+        // If refresh successful, try validation again
+        await apiService.get('/users/me')
+        return true
+      } catch {
+        return false
+      }
     }
   }
 

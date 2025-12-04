@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/Card"
 import { Button } from "@/components/Button"
 import { Badge } from "@/components/Badge"
@@ -34,8 +34,26 @@ import { Page, User } from "@/types/user"
 
 export function UsersContent() {
   const { getUrlState, setUrlState } = useUrlState()
-  const searchTerm = getUrlState("search") || ""
+  const urlSearchTerm = getUrlState("search") || ""
+  const [searchTerm, setSearchTerm] = useState(urlSearchTerm)
   const page = parseInt(getUrlState("page") || "0")
+
+  // Sync local state with URL when URL changes (e.g. back button)
+  useEffect(() => {
+    setSearchTerm(urlSearchTerm)
+  }, [urlSearchTerm])
+
+  // Debounce URL update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== urlSearchTerm) {
+        setUrlState("search", searchTerm)
+        setUrlState("page", "0")
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm, setUrlState, urlSearchTerm])
 
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<string | null>(null)
@@ -251,10 +269,7 @@ export function UsersContent() {
           <Input
             placeholder="Buscar usuários..."
             value={searchTerm}
-            onChange={(e) => {
-              setUrlState("search", e.target.value)
-              setUrlState("page", "0") // Reset to first page on search
-            }}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -278,76 +293,146 @@ export function UsersContent() {
             </div>
           )}
 
-          {/* Users Table */}
+          {/* Users Table (Desktop) */}
           {!isLoading && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Usuário</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Função</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Criado em</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-medium text-sm">
-                              {(user.username || 'U').charAt(0)}
-                            </span>
-                          </div>
-                          <span className="font-medium text-gray-900">{user.username || 'Nome não informado'}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">{user.email}</td>
-                      <td className="py-3 px-4">
-                        <Badge variant={user.role === 'Admin' ? 'warning' : 'default'}>
-                          {user.role}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        {/* Status não disponível na API atual */}
-                        <Badge variant="default">
-                          Ativo
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="secondary"
-                            className="text-xs"
-                            onClick={() => handleOpenEditModal(user)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="danger"
-                            className="text-xs"
-                            onClick={() => handleDeleteUser(user.id)}
-                            disabled={deleteUserMutation.isPending}
-                          >
-                            {deleteUserMutation.isPending ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-3 w-3" />
-                            )}
-                          </Button>
-                        </div>
-                      </td>
+            <>
+              <div className="hidden lg:block overflow-x-auto bg-white shadow-sm rounded-xl border border-gray-100">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Usuário</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Função</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Criado em</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4 whitespace-normal break-words">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-blue-600 font-medium text-sm">
+                                {(user.username || 'U').charAt(0)}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-900 break-all">{user.username || 'Nome não informado'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 whitespace-normal break-all">{user.email}</td>
+                        <td className="py-3 px-4">
+                          <Badge variant={user.role === 'Admin' ? 'warning' : 'default'}>
+                            {user.role}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          {/* Status não disponível na API atual */}
+                          <Badge variant="default">
+                            Ativo
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="secondary"
+                              className="text-xs"
+                              onClick={() => handleOpenEditModal(user)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="danger"
+                              className="text-xs"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              {deleteUserMutation.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards View */}
+              <div className="lg:hidden space-y-4">
+                {users.map((user) => (
+                  <div key={user.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                    <div className="mb-3 border-b border-gray-100 pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-lg font-bold text-gray-900">{user.username}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </div>
+                        <div className="text-xs text-gray-400 font-mono">ID: {user.id.substring(0, 8)}...</div>
+                      </div>
+                    </div>
+
+                    <dl className="space-y-2 text-sm text-gray-700">
+                      <div className="flex justify-between items-center">
+                        <dt className="font-medium text-gray-500">Função:</dt>
+                        <dd className="font-semibold text-indigo-700">
+                          <Badge variant={user.role === 'ADMIN' ? 'danger' : 'default'}>
+                            {user.role}
+                          </Badge>
+                        </dd>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <dt className="font-medium text-gray-500">Status:</dt>
+                        <dd className="font-semibold">
+                          <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
+                            Ativo
+                          </Badge>
+                        </dd>
+                      </div>
+                      <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
+                        <dt className="font-medium text-gray-500">Criado Em:</dt>
+                        <dd>{new Date(user.createdAt).toLocaleDateString('pt-BR')}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenEditModal(user)}
+                        className="text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-full"
+                        title="Editar Usuário"
+                      >
+                        <Edit className="h-5 w-5" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={deleteUserMutation.isPending}
+                        className="text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full"
+                        title="Deletar Usuário"
+                      >
+                        {deleteUserMutation.isPending ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-5 w-5" />
+                        )}
+                        <span className="sr-only">Deletar</span>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {/* Pagination Controls */}

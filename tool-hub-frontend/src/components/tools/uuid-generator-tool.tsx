@@ -7,6 +7,7 @@ import { RefreshCw, Copy, Settings } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 import { ulid } from 'ulid'
 import { nanoid, customAlphabet } from 'nanoid'
+import { copyToClipboard } from '@/lib/clipboard-utils'
 
 type IdType = 'uuid' | 'ulid' | 'nanoid' | 'pin'
 
@@ -15,9 +16,9 @@ function generateUUIDv4(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
   }
-  
+
   // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
@@ -44,7 +45,7 @@ export function UuidGeneratorTool() {
 
   const generateIds = useCallback(() => {
     if (!isMounted) return
-    
+
     const ids: string[] = []
 
     for (let i = 0; i < quantity; i++) {
@@ -99,16 +100,16 @@ export function UuidGeneratorTool() {
     generateIds()
   }, [generateIds])
 
-  const copyToClipboard = async (text: string) => {
+  const handleCopy = async (text: string) => {
     if (!text) return
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    if (success) {
       toast({
         title: "Copiado!",
         description: "Conteúdo copiado para a área de transferência",
         variant: "success"
       })
-    } catch {
+    } else {
       toast({
         title: "Erro",
         description: "Falha ao copiar",
@@ -119,7 +120,7 @@ export function UuidGeneratorTool() {
 
   const copyAllToClipboard = () => {
     const allIds = generatedIds.join('\n')
-    copyToClipboard(allIds)
+    handleCopy(allIds)
   }
 
   return (
@@ -318,7 +319,7 @@ export function UuidGeneratorTool() {
                 >
                   <span className="font-mono text-gray-800 break-all">{id}</span>
                   <button
-                    onClick={() => copyToClipboard(id)}
+                    onClick={() => handleCopy(id)}
                     className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                     title="Copiar"
                   >

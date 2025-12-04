@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/Button"
 import { useToast } from '@/providers/ToastProvider'
 import { Copy, RefreshCw } from 'lucide-react'
+import { copyToClipboard } from '@/lib/clipboard-utils'
 
 export function PasswordGeneratorTool() {
   const [length, setLength] = useState(16)
@@ -66,18 +67,17 @@ export function PasswordGeneratorTool() {
     })
   }
 
-  const copyToClipboard = async (text: string) => {
+  const handleCopy = async (text: string) => {
     if (!text) return
 
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    if (success) {
       toast({
         title: "Copiado!",
         description: "Senha copiada para a área de transferência!",
-        variant: "default" // Using default/success variant
+        variant: "default"
       })
-    } catch (err) {
-      console.error('Failed to copy:', err)
+    } else {
       toast({
         title: "Erro",
         description: "Erro ao copiar senha",
@@ -225,7 +225,7 @@ export function PasswordGeneratorTool() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => copyToClipboard(password)}
+                    onClick={() => handleCopy(password)}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 p-0"
                     title="Copiar senha"
                   >
@@ -234,7 +234,7 @@ export function PasswordGeneratorTool() {
                 </div>
 
                 <Button
-                  onClick={() => copyToClipboard(password)}
+                  onClick={() => handleCopy(password)}
                   className="w-full"
                   variant="secondary"
                 >
@@ -250,7 +250,7 @@ export function PasswordGeneratorTool() {
                         <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm group hover:bg-gray-100 transition-colors">
                           <span className="font-mono text-gray-600 truncate max-w-[200px]">{hist}</span>
                           <button
-                            onClick={() => copyToClipboard(hist)}
+                            onClick={() => handleCopy(hist)}
                             className="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Copiar"
                           >

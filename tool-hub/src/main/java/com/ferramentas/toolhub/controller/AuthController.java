@@ -5,8 +5,10 @@ import com.ferramentas.toolhub.dto.UserResponseDTO;
 import com.ferramentas.toolhub.model.User;
 import com.ferramentas.toolhub.security.AuthService;
 import com.ferramentas.toolhub.service.UserService;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +18,18 @@ import java.util.Optional;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
+    private final com.ferramentas.toolhub.service.RefreshTokenService refreshTokenService;
+    private final com.ferramentas.toolhub.security.JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
     private final UserService userService;
 
-    public AuthController(AuthService authService, UserService userService) {
+    public AuthController(AuthService authService, UserService userService,
+            com.ferramentas.toolhub.service.RefreshTokenService refreshTokenService,
+            com.ferramentas.toolhub.security.JwtTokenProvider jwtTokenProvider) {
         this.authService = authService;
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @PostMapping("/login")
@@ -41,13 +49,27 @@ public class AuthController {
 
             String token = authService.loginUser(user.getUsername(), password);
 
-            // Create HttpOnly cookie
-            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("token", token);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(false); // Set to true in production (requires HTTPS)
-            cookie.setPath("/");
-            cookie.setMaxAge(31536000); // 1 year (365 * 24 * 60 * 60)
-            response.addCookie(cookie);
+            // Create Access Token Cookie
+            ResponseCookie cookie = ResponseCookie.from("token", token)
+                    .httpOnly(true)
+                    .secure(false) // Set to true in production
+                    .path("/")
+                    .maxAge(900) // 15 minutes
+                    .sameSite("Strict")
+                    .build();
+
+            // Create Refresh Token
+            com.ferramentas.toolhub.model.RefreshToken refreshToken = refreshTokenService
+                    .createRefreshToken(user.getId());
+
+            // Create Refresh Token Cookie
+            ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken.getToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/api/v1/auth/refresh")
+                    .maxAge(604800) // 7 days
+                    .sameSite("Strict")
+                    .build();
 
             UserResponseDTO userResponse = new UserResponseDTO(
                     user.getId().toString(),
@@ -58,44 +80,103 @@ public class AuthController {
                     user.getCreatedAt().toString());
 
             Map<String, Object> responseBody = new HashMap<>();
-            // token is no longer needed in body for web apps, but keeping it for
-            // compatibility if needed
-            // responseBody.put("token", token);
             responseBody.put("user", userResponse);
 
-            return ResponseEntity.ok(responseBody);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(responseBody);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
+        String refreshToken = null;
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest().body("Refresh Token is missing");
+        }
+
+        return refreshTokenService.findByToken(refreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(com.ferramentas.toolhub.model.RefreshToken::getUser)
+                .map(user -> {
+                    // Generate new Access Token
+                    // We need to convert User entity to UserDetails or CustomUserDetails
+                    // Assuming CustomUserDetails constructor takes User entity or similar
+                    com.ferramentas.toolhub.security.CustomUserDetails userDetails = new com.ferramentas.toolhub.security.CustomUserDetails(
+                            user);
+                    String token = jwtTokenProvider.generateToken(userDetails);
+
+                    // Create Access Token Cookie
+                    ResponseCookie cookie = ResponseCookie.from("token", token)
+                            .httpOnly(true)
+                            .secure(false)
+                            .path("/")
+                            .maxAge(900)
+                            .sameSite("Strict")
+                            .build();
+
+                    return ResponseEntity.ok()
+                            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                            .build();
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    // Re-implementing refresh properly below by injecting JwtTokenProvider
+
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(jakarta.servlet.http.HttpServletResponse response) {
-        // Clear cookie regardless of authentication state
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("token", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0); // Delete cookie
-        response.addCookie(cookie);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout() {
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/v1/auth/refresh")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .build();
     }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> register(
-            @RequestBody com.ferramentas.toolhub.dto.UserRequestDTO userRequest) {
+            @jakarta.validation.Valid @RequestBody com.ferramentas.toolhub.dto.UserRequestDTO userRequest) {
+        System.out.println("Register request: " + userRequest); // Log request
         try {
             UserResponseDTO newUser = userService.saveFromDTO(userRequest);
             return ResponseEntity.ok(newUser);
         } catch (Exception e) {
+            System.err.println("Error registering user: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestBody Map<String, String> request) {
-        // Mock implementation for forgot password
-        // In a real app, this would send an email
         String email = request.get("email");
         System.out.println("Forgot password requested for: " + email);
         return ResponseEntity.ok().build();

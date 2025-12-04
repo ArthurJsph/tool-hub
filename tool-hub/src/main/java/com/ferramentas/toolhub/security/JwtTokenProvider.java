@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION:86400000}") // Default 24 hours
+    @Value("${JWT_EXPIRATION:900000}") // Default 15 minutes
     private long expiration;
 
     private Key getSigningKey() {

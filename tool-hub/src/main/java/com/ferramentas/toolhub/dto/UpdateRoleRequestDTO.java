@@ -1,7 +1,7 @@
 package com.ferramentas.toolhub.dto;
 
-public record UpdateRoleRequestDTO(
-    String role
-) {
-}
+import jakarta.validation.constraints.NotBlank;
 
+public record UpdateRoleRequestDTO(
+        @NotBlank(message = "Role is required") String role) {
+}

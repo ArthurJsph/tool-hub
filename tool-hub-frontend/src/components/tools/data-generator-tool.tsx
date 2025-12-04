@@ -7,6 +7,10 @@ import { Input } from '@/components/Input'
 import { Plus, Trash2, RefreshCw, Copy, FileJson, Table, Database } from 'lucide-react'
 import { useToast } from '@/providers/ToastProvider'
 import { fakerPT_BR as faker } from '@faker-js/faker'
+import { copyToClipboard } from '@/lib/clipboard-utils'
+
+// Simple ID generator for keys
+const generateId = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
 
 type FieldType = 'uuid' | 'fullName' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'city' | 'country' | 'company' | 'jobTitle' | 'datePast' | 'dateFuture' | 'boolean' | 'number' | 'price'
 
@@ -50,7 +54,7 @@ export function DataGeneratorTool() {
     const [loading, setLoading] = useState(false)
 
     const addField = () => {
-        setFields([...fields, { id: crypto.randomUUID(), name: '', type: 'fullName' }])
+        setFields([...fields, { id: generateId(), name: '', type: 'fullName' }])
     }
 
     const removeField = (id: string) => {
@@ -141,16 +145,16 @@ export function DataGeneratorTool() {
         }
     }
 
-    const copyToClipboard = async () => {
+    const handleCopy = async () => {
         if (!generatedData) return
-        try {
-            await navigator.clipboard.writeText(generatedData)
+        const success = await copyToClipboard(generatedData)
+        if (success) {
             toast({
                 title: "Copiado!",
                 description: "Dados copiados para a área de transferência",
                 variant: "success"
             })
-        } catch {
+        } else {
             toast({
                 title: "Erro",
                 description: "Falha ao copiar",
@@ -284,7 +288,7 @@ export function DataGeneratorTool() {
                             Resultado
                         </h3>
                         <div className="flex gap-2">
-                            <Button variant="secondary" size="sm" onClick={copyToClipboard} disabled={!generatedData}>
+                            <Button variant="secondary" size="sm" onClick={handleCopy} disabled={!generatedData}>
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copiar
                             </Button>

@@ -15,14 +15,14 @@ interface ToolsAdminListProps {
   isLoading?: boolean
 }
 
-export function ToolsAdminList({ 
-  tools, 
-  onEdit, 
-  onDelete, 
+export function ToolsAdminList({
+  tools,
+  onEdit,
+  onDelete,
   onToggleStatus,
-  isLoading = false 
+  isLoading = false
 }: ToolsAdminListProps) {
-  
+
   if (isLoading) {
     return (
       <Card>
@@ -46,7 +46,7 @@ export function ToolsAdminList({
 
   return (
     <Card>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
@@ -154,7 +154,84 @@ export function ToolsAdminList({
             ))}
           </tbody>
         </table>
+
       </div>
-    </Card>
+
+      {/* Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+        {tools.map((tool) => (
+          <div key={tool.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{tool.icon}</span>
+                <div>
+                  <div className="font-medium text-gray-900">{tool.name}</div>
+                  <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700 block mt-1">
+                    {tool.path}
+                  </code>
+                </div>
+              </div>
+              <Badge variant={tool.enabled ? 'success' : 'default'}>
+                {tool.enabled ? 'Ativo' : 'Inativo'}
+              </Badge>
+            </div>
+
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {tool.description}
+            </p>
+
+            <div className="flex flex-wrap gap-1">
+              {tool.keywords.slice(0, 5).map((keyword) => (
+                <span
+                  key={keyword}
+                  className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t mt-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onToggleStatus(tool)}
+                className="flex-1"
+              >
+                {tool.enabled ? (
+                  <>
+                    <PowerOff className="h-4 w-4 mr-2" />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <Power className="h-4 w-4 mr-2" />
+                    Ativar
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onEdit(tool)}
+                className="flex-1"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onDelete(tool)}
+                className="flex-1"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card >
   )
 }

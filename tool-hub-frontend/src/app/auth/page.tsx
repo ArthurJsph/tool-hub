@@ -104,30 +104,16 @@ export default function AuthPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/auth/forgot-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: (new FormData(e.currentTarget).get("forgot-email") as string),
-        }),
-      })
+    // Simulating API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-      if (!response.ok) {
-        throw new Error("Erro ao enviar email")
+    toast({
+      title: "Em desenvolvimento",
+      description: "Esta funcionalidade ainda está em desenvolvimento e não está pronta para uso.",
+      variant: "default",
+    })
 
-      }
-    } catch {
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar o email de recuperação",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    setIsLoading(false)
   }
 
   return (

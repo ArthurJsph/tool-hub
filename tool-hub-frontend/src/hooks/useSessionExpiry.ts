@@ -2,12 +2,17 @@
 
 import { useEffect } from 'react'
 import { useToast } from '@/providers/ToastProvider'
+import { usePathname } from 'next/navigation'
 
 export function useSessionExpiry() {
   const { toast } = useToast()
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleSessionExpired = (event: Event) => {
+      // Don't show session expired message if we're already on the auth page
+      if (pathname === '/auth' || pathname === '/') return
+
       const customEvent = event as CustomEvent<{ message?: string }>
       const message = customEvent.detail?.message || "Sua sessão expirou. Por favor, faça login novamente."
       toast({
@@ -47,5 +52,5 @@ export function useSessionExpiry() {
       window.removeEventListener('accessDenied', handleAccessDenied)
       window.removeEventListener('networkError', handleNetworkError)
     }
-  }, [toast])
+  }, [toast, pathname])
 }

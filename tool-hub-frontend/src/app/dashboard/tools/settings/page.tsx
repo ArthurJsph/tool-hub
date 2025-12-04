@@ -194,7 +194,8 @@ export default function AdminToolsPage() {
                 </div>
             )}
 
-            <div className="border rounded-lg overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block border rounded-lg overflow-hidden bg-white shadow-sm">
                 <table className="w-full text-sm text-left">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                         <tr>
@@ -255,7 +256,81 @@ export default function AdminToolsPage() {
                         )}
                     </tbody>
                 </table>
+
             </div>
-        </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+                {tools.map((tool) => {
+                    const Icon = getIcon(tool.icon)
+                    return (
+                        <div key={tool.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                            <div className="mb-3 border-b border-gray-100 pb-2 flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-2xl flex items-center justify-center w-10 h-10 bg-gray-50 rounded-lg">
+                                        <Icon className="h-6 w-6 text-gray-700" />
+                                    </span>
+                                    <p className="text-lg font-bold text-gray-900">{tool.title}</p>
+                                </div>
+                                <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${tool.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                                    }`}>
+                                    {tool.active ? "Ativo" : "Inativo"}
+                                </span>
+                            </div>
+
+                            <dl className="space-y-2 text-sm text-gray-700">
+                                <div className="flex justify-between items-center">
+                                    <dt className="font-medium text-gray-500">Chave:</dt>
+                                    <dd className="font-mono text-gray-800 bg-gray-50 px-2 py-0.5 rounded">{tool.key}</dd>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <dt className="font-medium text-gray-500">Rota:</dt>
+                                    <dd className="text-indigo-600 font-medium truncate max-w-[200px]">{tool.href}</dd>
+                                </div>
+                            </dl>
+
+                            <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end space-x-2">
+                                <button
+                                    onClick={() => toggleStatus(tool)}
+                                    title={tool.active ? "Desativar" : "Ativar"}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+                                >
+                                    {tool.active ? (
+                                        <PowerOff className="h-5 w-5" />
+                                    ) : (
+                                        <Power className="h-5 w-5" />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setFormData(tool)
+                                        setIsDialogOpen(true)
+                                    }}
+                                    title="Editar"
+                                    className="p-2 hover:bg-indigo-50 rounded-full transition-colors text-indigo-600"
+                                >
+                                    <div className="h-5 w-5">
+                                        {/* Edit Icon manually since it wasn't imported */}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" /></svg>
+                                    </div>
+                                </button>
+                                <button
+                                    onClick={() => deleteTool(tool.id!)}
+                                    title="Excluir"
+                                    className="p-2 hover:bg-red-50 rounded-full transition-colors text-red-600"
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                </button>
+                            </div>
+                        </div>
+                    )
+                })}
+                {tools.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-dashed">
+                        Nenhuma ferramenta cadastrada.
+                    </div>
+                )}
+            </div>
+        </div >
     )
 }
